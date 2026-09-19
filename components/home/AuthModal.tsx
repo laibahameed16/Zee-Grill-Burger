@@ -21,6 +21,34 @@ interface StoredUser {
   referenceCode?: string;
 }
 
+function GoogleLogo({ className = "h-5 w-5" }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <path
+        fill="#4285F4"
+        d="M21.35 12.27c0-.71-.06-1.39-.18-2.05H12v3.88h5.24a4.48 4.48 0 0 1-1.94 2.94v2.45h3.14c1.84-1.69 2.91-4.18 2.91-7.22Z"
+      />
+      <path
+        fill="#34A853"
+        d="M12 21.78c2.63 0 4.84-.87 6.45-2.36l-3.14-2.45c-.87.58-1.98.93-3.31.93-2.55 0-4.71-1.72-5.49-4.03H3.26v2.53A9.75 9.75 0 0 0 12 21.78Z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M6.51 13.87a5.86 5.86 0 0 1 0-3.74V7.6H3.26a9.78 9.78 0 0 0 0 8.8l3.25-2.53Z"
+      />
+      <path
+        fill="#EA4335"
+        d="M12 6.1c1.43 0 2.71.49 3.72 1.45l2.79-2.79C16.84 3.19 14.63 2.22 12 2.22a9.75 9.75 0 0 0-8.74 5.38l3.25 2.53C7.29 7.82 9.45 6.1 12 6.1Z"
+      />
+    </svg>
+  );
+}
+
 export default function AuthModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [mode, setMode] = useState<AuthMode>("login");
@@ -46,7 +74,7 @@ export default function AuthModal() {
   const [otpError, setOtpError] = useState("");
   const [resendCountdown, setResendCountdown] = useState(0);
 
-  // Reset Password Form States (matches user screenshot)
+  // Reset Password Form States
   const [resetCode, setResetCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -54,8 +82,6 @@ export default function AuthModal() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [resetError, setResetError] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
-
-  // Removed local Toast Notification State since we use showNotification now
 
   // Google Custom Sign-in State
   const [customGoogleEmail, setCustomGoogleEmail] = useState("");
@@ -74,10 +100,12 @@ export default function AuthModal() {
     selectedName: string
   ) => {
     if (!selectedEmail || !selectedEmail.includes("@")) return;
+
     performLogin({
       name: selectedName || selectedEmail.split("@")[0],
       email: selectedEmail,
-      firstName: selectedName.split(" ")[0] || selectedEmail.split("@")[0],
+      firstName:
+        selectedName.split(" ")[0] || selectedEmail.split("@")[0],
     });
   };
 
@@ -106,9 +134,11 @@ export default function AuthModal() {
   ========================== */
   useEffect(() => {
     if (resendCountdown <= 0) return;
+
     const timer = setTimeout(() => {
       setResendCountdown((prev) => prev - 1);
     }, 1000);
+
     return () => clearTimeout(timer);
   }, [resendCountdown]);
 
@@ -167,26 +197,32 @@ export default function AuthModal() {
   /* =========================
      HELPER: SAVE USER & LOGIN
   ========================== */
-  const performLogin = (userData: {
-    name: string;
-    email: string;
-    firstName?: string;
-    lastName?: string;
-    phone?: string;
-    profilePic?: string;
-  }, toastMsg: string = "Successfully logged in") => {
+  const performLogin = (
+    userData: {
+      name: string;
+      email: string;
+      firstName?: string;
+      lastName?: string;
+      phone?: string;
+      profilePic?: string;
+    },
+    toastMsg: string = "Successfully logged in"
+  ) => {
     const displayName = userData.name || userData.firstName || "User";
 
-    // Try to restore profilePic from registered users if not passed
     let profilePic = userData.profilePic || "";
+
     if (!profilePic && userData.email) {
       try {
         const savedUsers = JSON.parse(
           localStorage.getItem("zee-grill-registered-users") || "[]"
         );
+
         const found = savedUsers.find(
-          (u: any) => u.email?.toLowerCase() === userData.email.toLowerCase()
+          (u: any) =>
+            u.email?.toLowerCase() === userData.email.toLowerCase()
         );
+
         if (found && found.profilePic) {
           profilePic = found.profilePic;
         }
@@ -195,10 +231,8 @@ export default function AuthModal() {
       }
     }
 
-    // Set loggedInUser for Navbar
     localStorage.setItem("loggedInUser", displayName);
 
-    // Set zee-grill-user for Cart / Checkout — restore full profile
     localStorage.setItem(
       "zee-grill-user",
       JSON.stringify({
@@ -211,7 +245,6 @@ export default function AuthModal() {
       })
     );
 
-    // Notify other components
     window.dispatchEvent(new Event("auth-changed"));
     window.dispatchEvent(new Event("user-logged-in"));
 
@@ -231,21 +264,22 @@ export default function AuthModal() {
       return;
     }
 
-    // Default admin/demo account (with support for changed password)
     const customAdminPass =
       localStorage.getItem("zee-grill-admin-password") || "udaisa123";
+
     const isDefaultUser =
-      trimmedEmail === "udaisnaeem@gmail.com" && password === customAdminPass;
+      trimmedEmail === "udaisnaeem@gmail.com" &&
+      password === customAdminPass;
 
     if (isDefaultUser) {
       performLogin({
         name: "udaisa",
         email: "udaisnaeem@gmail.com",
       });
+
       return;
     }
 
-    // Check registered accounts in localStorage
     try {
       const savedUsers: StoredUser[] = JSON.parse(
         localStorage.getItem("zee-grill-registered-users") || "[]"
@@ -253,7 +287,8 @@ export default function AuthModal() {
 
       const foundUser = savedUsers.find(
         (u) =>
-          u.email.toLowerCase() === trimmedEmail && u.password === password
+          u.email.toLowerCase() === trimmedEmail &&
+          u.password === password
       );
 
       if (foundUser) {
@@ -266,6 +301,7 @@ export default function AuthModal() {
           phone: foundUser.phone,
           email: foundUser.email,
         });
+
         return;
       }
     } catch {
@@ -283,18 +319,22 @@ export default function AuthModal() {
       setRegError("First name is required.");
       return;
     }
+
     if (!regLastName.trim()) {
       setRegError("Last name is required.");
       return;
     }
+
     if (!regPhone.trim()) {
       setRegError("Phone number is required.");
       return;
     }
+
     if (!regEmail.trim() || !regEmail.includes("@")) {
       setRegError("A valid email address is required.");
       return;
     }
+
     if (!regPassword || regPassword.length < 6) {
       setRegError("Password must be at least 6 characters.");
       return;
@@ -306,11 +346,14 @@ export default function AuthModal() {
       );
 
       const emailExists = savedUsers.some(
-        (u) => u.email.toLowerCase() === regEmail.trim().toLowerCase()
+        (u) =>
+          u.email.toLowerCase() === regEmail.trim().toLowerCase()
       );
 
       if (emailExists) {
-        setRegError("An account with this email already exists. Please login.");
+        setRegError(
+          "An account with this email already exists. Please login."
+        );
         return;
       }
 
@@ -325,19 +368,22 @@ export default function AuthModal() {
       };
 
       savedUsers.push(newUser);
+
       localStorage.setItem(
         "zee-grill-registered-users",
         JSON.stringify(savedUsers)
       );
 
-      // Automatically log the newly registered user in!
-      performLogin({
-        name: newUser.name || newUser.firstName,
-        firstName: newUser.firstName,
-        lastName: newUser.lastName,
-        phone: newUser.phone,
-        email: newUser.email,
-      }, "Successfully registered your account");
+      performLogin(
+        {
+          name: newUser.name || newUser.firstName,
+          firstName: newUser.firstName,
+          lastName: newUser.lastName,
+          phone: newUser.phone,
+          email: newUser.email,
+        },
+        "Successfully registered your account"
+      );
     } catch {
       setRegError("Failed to register. Please try again.");
     }
@@ -347,7 +393,13 @@ export default function AuthModal() {
      FORGOT PASSWORD: SEND CODE
   ========================== */
   const handleSendOtp = async (targetEmail?: string) => {
-    const emailToSend = (targetEmail || otpEmail || email).trim().toLowerCase();
+    const emailToSend = (
+      targetEmail ||
+      otpEmail ||
+      email
+    )
+      .trim()
+      .toLowerCase();
 
     if (!emailToSend || !emailToSend.includes("@")) {
       setOtpError("Please enter a valid email address.");
@@ -361,19 +413,25 @@ export default function AuthModal() {
     try {
       const response = await fetch("/api/auth/send-otp", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: emailToSend }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: emailToSend,
+        }),
       });
 
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        setOtpError(data.error || "Failed to send code. Please try again.");
+        setOtpError(
+          data.error || "Failed to send code. Please try again."
+        );
+
         setOtpLoading(false);
         return;
       }
 
-      // Switch to the Reset Password screen (screenshot UI)
       setResendCountdown(60);
       setResetCode("");
       setNewPassword("");
@@ -381,7 +439,9 @@ export default function AuthModal() {
       setResetError("");
       setMode("reset-password");
     } catch {
-      setOtpError("Network error. Please check your connection and try again.");
+      setOtpError(
+        "Network error. Please check your connection and try again."
+      );
     } finally {
       setOtpLoading(false);
     }
@@ -392,13 +452,17 @@ export default function AuthModal() {
   ========================== */
   const handleSaveNewPassword = async () => {
     if (!resetCode.trim()) {
-      setResetError("Please enter the password code received on your email.");
+      setResetError(
+        "Please enter the password code received on your email."
+      );
       return;
     }
+
     if (!newPassword || newPassword.length < 6) {
       setResetError("New password must be at least 6 characters.");
       return;
     }
+
     if (newPassword !== confirmPassword) {
       setResetError("Passwords do not match.");
       return;
@@ -410,7 +474,9 @@ export default function AuthModal() {
     try {
       const response = await fetch("/api/auth/reset-password", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           email: otpEmail,
           code: resetCode.trim(),
@@ -426,7 +492,6 @@ export default function AuthModal() {
         return;
       }
 
-      // Update stored passwords so the user can login with their new password in future
       let userDisplayName = "";
       let foundUser: StoredUser | undefined;
 
@@ -436,15 +501,18 @@ export default function AuthModal() {
         );
 
         const userIndex = savedUsers.findIndex(
-          (u) => u.email.toLowerCase() === otpEmail.toLowerCase()
+          (u) =>
+            u.email.toLowerCase() === otpEmail.toLowerCase()
         );
 
         if (userIndex !== -1) {
           savedUsers[userIndex].password = newPassword;
           foundUser = savedUsers[userIndex];
+
           userDisplayName =
             `${foundUser.firstName} ${foundUser.lastName}`.trim() ||
             foundUser.firstName;
+
           localStorage.setItem(
             "zee-grill-registered-users",
             JSON.stringify(savedUsers)
@@ -455,19 +523,25 @@ export default function AuthModal() {
       }
 
       if (otpEmail.toLowerCase() === "udaisnaeem@gmail.com") {
-        localStorage.setItem("zee-grill-admin-password", newPassword);
+        localStorage.setItem(
+          "zee-grill-admin-password",
+          newPassword
+        );
+
         userDisplayName = userDisplayName || "udaisa";
       }
 
       if (!userDisplayName) {
         const prefix = otpEmail.split("@")[0];
-        userDisplayName = prefix.charAt(0).toUpperCase() + prefix.slice(1);
 
-        // Register new user record
+        userDisplayName =
+          prefix.charAt(0).toUpperCase() + prefix.slice(1);
+
         try {
           const savedUsers: StoredUser[] = JSON.parse(
             localStorage.getItem("zee-grill-registered-users") || "[]"
           );
+
           savedUsers.push({
             firstName: userDisplayName,
             lastName: "",
@@ -476,6 +550,7 @@ export default function AuthModal() {
             password: newPassword,
             name: userDisplayName,
           });
+
           localStorage.setItem(
             "zee-grill-registered-users",
             JSON.stringify(savedUsers)
@@ -485,7 +560,6 @@ export default function AuthModal() {
         }
       }
 
-      // LOG IN TO ACCOUNT IMMEDIATELY AS REQUESTED!
       performLogin({
         name: userDisplayName,
         email: otpEmail,
@@ -505,6 +579,7 @@ export default function AuthModal() {
   ========================== */
   const handleGoogleClick = () => {
     const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+
     const windowWithGoogle = window as unknown as {
       google?: {
         accounts: {
@@ -512,21 +587,31 @@ export default function AuthModal() {
             initTokenClient: (config: {
               client_id: string;
               scope: string;
-              callback: (tokenResponse: { access_token?: string }) => void;
-            }) => { requestAccessToken: () => void };
+              callback: (tokenResponse: {
+                access_token?: string;
+              }) => void;
+            }) => {
+              requestAccessToken: () => void;
+            };
           };
         };
       };
     };
 
-    if (clientId && windowWithGoogle.google?.accounts?.oauth2) {
+    if (
+      clientId &&
+      windowWithGoogle.google?.accounts?.oauth2
+    ) {
       try {
         const tokenClient =
           windowWithGoogle.google.accounts.oauth2.initTokenClient({
             client_id: clientId,
             scope: "email profile openid",
             callback: async (tokenResponse) => {
-              if (tokenResponse && tokenResponse.access_token) {
+              if (
+                tokenResponse &&
+                tokenResponse.access_token
+              ) {
                 try {
                   const res = await fetch(
                     "https://www.googleapis.com/oauth2/v3/userinfo",
@@ -536,29 +621,44 @@ export default function AuthModal() {
                       },
                     }
                   );
+
                   const googleProfile = await res.json();
-                  if (googleProfile && googleProfile.email) {
+
+                  if (
+                    googleProfile &&
+                    googleProfile.email
+                  ) {
                     performLogin({
                       name:
                         googleProfile.name ||
                         googleProfile.given_name ||
                         "Google User",
                       email: googleProfile.email,
-                      firstName: googleProfile.given_name || "",
-                      lastName: googleProfile.family_name || "",
+                      firstName:
+                        googleProfile.given_name || "",
+                      lastName:
+                        googleProfile.family_name || "",
                     });
+
                     return;
                   }
                 } catch (e) {
-                  console.error("Google userinfo fetch error:", e);
+                  console.error(
+                    "Google userinfo fetch error:",
+                    e
+                  );
                 }
               }
             },
           });
+
         tokenClient.requestAccessToken();
         return;
       } catch (err) {
-        console.error("Google GIS init error:", err);
+        console.error(
+          "Google GIS init error:",
+          err
+        );
       }
     }
 
@@ -569,11 +669,20 @@ export default function AuthModal() {
     selectedEmail: string,
     selectedName: string
   ) => {
-    if (!selectedEmail || !selectedEmail.includes("@")) return;
+    if (
+      !selectedEmail ||
+      !selectedEmail.includes("@")
+    )
+      return;
+
     performLogin({
-      name: selectedName || selectedEmail.split("@")[0],
+      name:
+        selectedName ||
+        selectedEmail.split("@")[0],
       email: selectedEmail,
-      firstName: selectedName.split(" ")[0] || selectedEmail.split("@")[0],
+      firstName:
+        selectedName.split(" ")[0] ||
+        selectedEmail.split("@")[0],
     });
   };
 
@@ -795,7 +904,9 @@ export default function AuthModal() {
           {/* OR */}
           <div className="my-4 flex items-center gap-3">
             <div className="h-px flex-1 bg-[#e5e7eb]" />
-            <span className="text-[10px] font-semibold text-[#a1a7b0]">OR</span>
+            <span className="text-[10px] font-semibold text-[#a1a7b0]">
+              OR
+            </span>
             <div className="h-px flex-1 bg-[#e5e7eb]" />
           </div>
 
@@ -853,11 +964,7 @@ export default function AuthModal() {
                 cursor-pointer
               "
             >
-              <img
-                src="/images/login/Googlelogo.png"
-                alt="Google"
-                className="h-[15px] w-[15px] object-contain"
-              />
+              <GoogleLogo className="h-[15px] w-[15px]" />
               <span>Google</span>
             </button>
           </div>
@@ -921,6 +1028,7 @@ export default function AuthModal() {
               <label className="block text-[10px] font-bold uppercase tracking-wider text-[#596273]">
                 Firstname *
               </label>
+
               <input
                 type="text"
                 value={regFirstName}
@@ -938,6 +1046,7 @@ export default function AuthModal() {
               <label className="block text-[10px] font-bold uppercase tracking-wider text-[#596273]">
                 Lastname *
               </label>
+
               <input
                 type="text"
                 value={regLastName}
@@ -955,6 +1064,7 @@ export default function AuthModal() {
               <label className="block text-[10px] font-bold uppercase tracking-wider text-[#596273]">
                 Phone *
               </label>
+
               <input
                 type="tel"
                 value={regPhone}
@@ -972,6 +1082,7 @@ export default function AuthModal() {
               <label className="block text-[10px] font-bold uppercase tracking-wider text-[#596273]">
                 E-mail *
               </label>
+
               <input
                 type="email"
                 value={regEmail}
@@ -989,6 +1100,7 @@ export default function AuthModal() {
               <label className="block text-[10px] font-bold uppercase tracking-wider text-[#596273]">
                 Password *
               </label>
+
               <input
                 type="password"
                 value={regPassword}
@@ -1001,15 +1113,18 @@ export default function AuthModal() {
               />
             </div>
 
-            {/* REFERENCE CODE (OPTIONAL) */}
+            {/* REFERENCE CODE */}
             <div className="rounded-[14px] bg-[#f4f4f5] px-3.5 py-2 border border-transparent focus-within:border-[#ff542d] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#ff542d]/10 transition-all duration-200">
               <label className="block text-[10px] font-bold uppercase tracking-wider text-[#596273]">
                 Reference Code (Optional)
               </label>
+
               <input
                 type="text"
                 value={regReferenceCode}
-                onChange={(e) => setRegReferenceCode(e.target.value)}
+                onChange={(e) =>
+                  setRegReferenceCode(e.target.value)
+                }
                 placeholder="Enter reference code if you have"
                 className="mt-0.5 w-full bg-transparent text-[13px] font-medium text-[#293241] outline-none placeholder:text-[#a1a9b5]"
               />
@@ -1033,9 +1148,12 @@ export default function AuthModal() {
             <input
               type="checkbox"
               checked={regAgreeTerms}
-              onChange={(e) => setRegAgreeTerms(e.target.checked)}
+              onChange={(e) =>
+                setRegAgreeTerms(e.target.checked)
+              }
               className="mt-[2px] h-[13px] w-[13px] shrink-0 accent-[#ff542d]"
             />
+
             <span>
               I would like to receive news and promotional offers via email, SMS and push messages.
             </span>
@@ -1075,7 +1193,9 @@ export default function AuthModal() {
           {/* OR */}
           <div className="my-3 flex items-center gap-2">
             <div className="h-px flex-1 bg-[#e5e7eb]" />
-            <span className="text-[10px] font-semibold text-[#a1a7b0]">OR</span>
+            <span className="text-[10px] font-semibold text-[#a1a7b0]">
+              OR
+            </span>
             <div className="h-px flex-1 bg-[#e5e7eb]" />
           </div>
 
@@ -1103,11 +1223,7 @@ export default function AuthModal() {
               cursor-pointer
             "
           >
-            <img
-              src="/images/login/Googlelogo.png"
-              alt="Google"
-              className="h-[15px] w-[15px] object-contain"
-            />
+            <GoogleLogo className="h-[15px] w-[15px]" />
             <span>Register with Google</span>
           </button>
 
@@ -1126,7 +1242,7 @@ export default function AuthModal() {
       )}
 
       {/* =====================================================
-          3. FORGOT PASSWORD SCREEN (ENTER EMAIL)
+          3. FORGOT PASSWORD SCREEN
       ====================================================== */}
       {mode === "forgot-password" && (
         <div
@@ -1143,7 +1259,6 @@ export default function AuthModal() {
             sm:px-6
           "
         >
-          {/* CROSS */}
           <button
             type="button"
             onClick={closeModal}
@@ -1171,19 +1286,19 @@ export default function AuthModal() {
             />
           </button>
 
-          {/* TITLE & DESCRIPTION */}
           <h2 className="text-[15px] font-semibold text-[#202938] sm:text-[16px]">
             Forgot Password
           </h2>
+
           <p className="mt-1 text-[8px] leading-[1.5] text-[#596273]">
             Apna email address darj karein. Hum aapko password reset karne ke liye ek verification code bhejenge.
           </p>
 
-          {/* EMAIL INPUT */}
           <div className="mt-4 rounded-[9px] bg-[#f4f4f5] px-3 py-2">
             <label className="block text-[7px] font-medium text-[#596273]">
               E-mail *
             </label>
+
             <input
               type="email"
               value={otpEmail}
@@ -1207,14 +1322,12 @@ export default function AuthModal() {
             />
           </div>
 
-          {/* ERROR */}
           {otpError && (
             <p className="mt-2 text-center text-[8px] font-medium text-red-500">
               {otpError}
             </p>
           )}
 
-          {/* SEND BUTTON */}
           <button
             type="button"
             onClick={() => handleSendOtp()}
@@ -1234,10 +1347,11 @@ export default function AuthModal() {
               disabled:opacity-60
             "
           >
-            {otpLoading ? "Sending Code..." : "Send Verification Code"}
+            {otpLoading
+              ? "Sending Code..."
+              : "Send Verification Code"}
           </button>
 
-          {/* BACK TO LOGIN */}
           <p className="mt-4 text-center text-[8px] text-[#7c8490]">
             Remember your password?{" "}
             <button
@@ -1252,7 +1366,7 @@ export default function AuthModal() {
       )}
 
       {/* =====================================================
-          4. RESET PASSWORD SCREEN (MATCHES USER SCREENSHOT)
+          4. RESET PASSWORD SCREEN
       ====================================================== */}
       {mode === "reset-password" && (
         <div
@@ -1269,7 +1383,6 @@ export default function AuthModal() {
             sm:px-7
           "
         >
-          {/* CROSS */}
           <button
             type="button"
             onClick={closeModal}
@@ -1297,26 +1410,23 @@ export default function AuthModal() {
             />
           </button>
 
-          {/* MAIN TITLE */}
           <h2 className="text-[17px] font-bold text-[#1f2937]">
             Reset password
           </h2>
 
-          {/* SUBTITLE */}
           <h3 className="mt-3 text-[12px] font-semibold text-[#1f2937]">
             Enter code and new password
           </h3>
 
-          {/* DESCRIPTION */}
           <p className="mt-1 text-[9px] leading-[1.5] text-[#6b7280]">
             We have sent you a code to your Email address. You have to enter the code to change the password.
           </p>
 
-          {/* PASSWORD CODE FIELD */}
           <div className="mt-4 rounded-[10px] bg-[#f4f4f5] px-3.5 py-2.5">
             <label className="block text-[8px] font-medium text-[#6b7280]">
               Password code
             </label>
+
             <input
               type="text"
               value={resetCode}
@@ -1338,13 +1448,13 @@ export default function AuthModal() {
             />
           </div>
 
-          {/* NEW PASSWORD & CONFIRM PASSWORD IN 2 COLUMNS */}
           <div className="mt-3 grid grid-cols-2 gap-3">
             {/* NEW PASSWORD */}
             <div className="rounded-[10px] bg-[#f4f4f5] px-3.5 py-2.5">
               <label className="block text-[8px] font-medium text-[#6b7280]">
                 New password
               </label>
+
               <div className="mt-1 flex items-center justify-between">
                 <input
                   type={showNewPassword ? "text" : "password"}
@@ -1364,9 +1474,12 @@ export default function AuthModal() {
                     placeholder:text-[#9ca3af]
                   "
                 />
+
                 <button
                   type="button"
-                  onClick={() => setShowNewPassword(!showNewPassword)}
+                  onClick={() =>
+                    setShowNewPassword(!showNewPassword)
+                  }
                   aria-label="Toggle new password visibility"
                   className="ml-1 text-[#9ca3af] transition-colors hover:text-[#4b5563]"
                 >
@@ -1414,9 +1527,14 @@ export default function AuthModal() {
               <label className="block text-[8px] font-medium text-[#6b7280]">
                 Confirm password
               </label>
+
               <div className="mt-1 flex items-center justify-between">
                 <input
-                  type={showConfirmPassword ? "text" : "password"}
+                  type={
+                    showConfirmPassword
+                      ? "text"
+                      : "password"
+                  }
                   value={confirmPassword}
                   onChange={(e) => {
                     setConfirmPassword(e.target.value);
@@ -1433,9 +1551,14 @@ export default function AuthModal() {
                     placeholder:text-[#9ca3af]
                   "
                 />
+
                 <button
                   type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  onClick={() =>
+                    setShowConfirmPassword(
+                      !showConfirmPassword
+                    )
+                  }
                   aria-label="Toggle confirm password visibility"
                   className="ml-1 text-[#9ca3af] transition-colors hover:text-[#4b5563]"
                 >
@@ -1470,7 +1593,7 @@ export default function AuthModal() {
                         strokeLinecap="round"
                         strokeLinejoin="round"
                         strokeWidth={1.8}
-                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"
+                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"
                       />
                     </svg>
                   )}
@@ -1479,14 +1602,12 @@ export default function AuthModal() {
             </div>
           </div>
 
-          {/* ERROR */}
           {resetError && (
             <p className="mt-2.5 text-center text-[8px] font-medium text-red-500">
               {resetError}
             </p>
           )}
 
-          {/* SAVE NEW PASSWORD BUTTON */}
           <button
             type="button"
             onClick={handleSaveNewPassword}
@@ -1506,10 +1627,11 @@ export default function AuthModal() {
               disabled:opacity-60
             "
           >
-            {resetLoading ? "Saving..." : "Save new password"}
+            {resetLoading
+              ? "Saving..."
+              : "Save new password"}
           </button>
 
-          {/* CHANGE EMAIL & RESEND CODE */}
           <div className="mt-3 flex items-center justify-between text-[8px]">
             <button
               type="button"
@@ -1526,7 +1648,9 @@ export default function AuthModal() {
             ) : (
               <button
                 type="button"
-                onClick={() => handleSendOtp(otpEmail)}
+                onClick={() =>
+                  handleSendOtp(otpEmail)
+                }
                 className="font-semibold text-[#ff542d] hover:underline"
               >
                 Resend code
@@ -1554,7 +1678,6 @@ export default function AuthModal() {
             sm:px-7
           "
         >
-          {/* CROSS */}
           <button
             type="button"
             onClick={closeModal}
@@ -1585,15 +1708,13 @@ export default function AuthModal() {
 
           {/* GOOGLE HEADER */}
           <div className="flex items-center gap-2.5">
-            <img
-              src="/images/login/Googlelogo.png"
-              alt="Google"
-              className="h-[22px] w-[22px] object-contain"
-            />
+            <GoogleLogo className="h-[22px] w-[22px]" />
+
             <h2 className="text-[20px] font-bold text-[#202938] sm:text-[22px]">
               Sign in with Google
             </h2>
           </div>
+
           <p className="mt-1 text-[11px] font-medium text-[#596273]">
             Choose or enter your Google account to log in to Zee Grill Burger.
           </p>
@@ -1626,10 +1747,12 @@ export default function AuthModal() {
               <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#ff542d] text-[13px] font-bold text-white shrink-0">
                 G
               </div>
+
               <div className="flex-1 overflow-hidden">
                 <p className="truncate text-[13px] font-bold text-[#202938]">
                   Google User
                 </p>
+
                 <p className="truncate text-[11px] font-medium text-[#707886]">
                   google.user@gmail.com
                 </p>
@@ -1639,9 +1762,11 @@ export default function AuthModal() {
 
           <div className="my-4 flex items-center gap-2.5">
             <div className="h-px flex-1 bg-[#e5e7eb]" />
+
             <span className="text-[10px] font-semibold text-[#a1a7b0]">
               or enter your Google email
             </span>
+
             <div className="h-px flex-1 bg-[#e5e7eb]" />
           </div>
 
@@ -1650,10 +1775,13 @@ export default function AuthModal() {
             <label className="block text-[10px] font-bold uppercase tracking-wider text-[#596273]">
               Your Name
             </label>
+
             <input
               type="text"
               value={customGoogleName}
-              onChange={(e) => setCustomGoogleName(e.target.value)}
+              onChange={(e) =>
+                setCustomGoogleName(e.target.value)
+              }
               placeholder="e.g. John Doe"
               className="mt-1 w-full bg-transparent text-[13px] font-medium text-[#293241] outline-none placeholder:text-[#a1a9b5]"
             />
@@ -1664,10 +1792,13 @@ export default function AuthModal() {
             <label className="block text-[10px] font-bold uppercase tracking-wider text-[#596273]">
               Google Email *
             </label>
+
             <input
               type="email"
               value={customGoogleEmail}
-              onChange={(e) => setCustomGoogleEmail(e.target.value)}
+              onChange={(e) =>
+                setCustomGoogleEmail(e.target.value)
+              }
               placeholder="you@gmail.com"
               className="mt-1 w-full bg-transparent text-[13px] font-medium text-[#293241] outline-none placeholder:text-[#a1a9b5]"
             />
@@ -1676,14 +1807,21 @@ export default function AuthModal() {
           <button
             type="button"
             onClick={() => {
-              if (customGoogleEmail && customGoogleEmail.includes("@")) {
+              if (
+                customGoogleEmail &&
+                customGoogleEmail.includes("@")
+              ) {
                 handleCustomGoogleSignIn(
                   customGoogleEmail.trim(),
-                  customGoogleName.trim() || customGoogleEmail.split("@")[0]
+                  customGoogleName.trim() ||
+                    customGoogleEmail.split("@")[0]
                 );
               }
             }}
-            disabled={!customGoogleEmail || !customGoogleEmail.includes("@")}
+            disabled={
+              !customGoogleEmail ||
+              !customGoogleEmail.includes("@")
+            }
             className="
               mt-4
               w-full
@@ -1734,7 +1872,6 @@ export default function AuthModal() {
             sm:px-7
           "
         >
-          {/* CROSS */}
           <button
             type="button"
             onClick={closeModal}
@@ -1770,10 +1907,12 @@ export default function AuthModal() {
               alt="Apple"
               className="h-[22px] w-[22px] object-contain"
             />
+
             <h2 className="text-[20px] font-bold text-[#202938] sm:text-[22px]">
               Sign in with Apple
             </h2>
           </div>
+
           <p className="mt-1 text-[11px] font-medium text-[#596273]">
             Choose or enter your Apple ID account to log in to Zee Grill Burger.
           </p>
@@ -1810,10 +1949,12 @@ export default function AuthModal() {
                   className="h-[16px] w-[16px] object-contain invert"
                 />
               </div>
+
               <div className="flex-1 overflow-hidden">
                 <p className="truncate text-[13px] font-bold text-[#202938]">
                   Apple User
                 </p>
+
                 <p className="truncate text-[11px] font-medium text-[#707886]">
                   apple.user@icloud.com
                 </p>
@@ -1823,9 +1964,11 @@ export default function AuthModal() {
 
           <div className="my-4 flex items-center gap-2.5">
             <div className="h-px flex-1 bg-[#e5e7eb]" />
+
             <span className="text-[10px] font-semibold text-[#a1a7b0]">
               or enter your Apple ID
             </span>
+
             <div className="h-px flex-1 bg-[#e5e7eb]" />
           </div>
 
@@ -1834,10 +1977,13 @@ export default function AuthModal() {
             <label className="block text-[10px] font-bold uppercase tracking-wider text-[#596273]">
               Your Name
             </label>
+
             <input
               type="text"
               value={customAppleName}
-              onChange={(e) => setCustomAppleName(e.target.value)}
+              onChange={(e) =>
+                setCustomAppleName(e.target.value)
+              }
               placeholder="e.g. John Doe"
               className="mt-1 w-full bg-transparent text-[13px] font-medium text-[#293241] outline-none placeholder:text-[#a1a9b5]"
             />
@@ -1848,10 +1994,13 @@ export default function AuthModal() {
             <label className="block text-[10px] font-bold uppercase tracking-wider text-[#596273]">
               Apple ID / Email *
             </label>
+
             <input
               type="email"
               value={customAppleEmail}
-              onChange={(e) => setCustomAppleEmail(e.target.value)}
+              onChange={(e) =>
+                setCustomAppleEmail(e.target.value)
+              }
               placeholder="you@icloud.com"
               className="mt-1 w-full bg-transparent text-[13px] font-medium text-[#293241] outline-none placeholder:text-[#a1a9b5]"
             />
@@ -1860,14 +2009,21 @@ export default function AuthModal() {
           <button
             type="button"
             onClick={() => {
-              if (customAppleEmail && customAppleEmail.includes("@")) {
+              if (
+                customAppleEmail &&
+                customAppleEmail.includes("@")
+              ) {
                 handleCustomAppleSignIn(
                   customAppleEmail.trim(),
-                  customAppleName.trim() || customAppleEmail.split("@")[0]
+                  customAppleName.trim() ||
+                    customAppleEmail.split("@")[0]
                 );
               }
             }}
-            disabled={!customAppleEmail || !customAppleEmail.includes("@")}
+            disabled={
+              !customAppleEmail ||
+              !customAppleEmail.includes("@")
+            }
             className="
               mt-4
               w-full
