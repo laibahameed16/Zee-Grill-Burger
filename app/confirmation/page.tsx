@@ -13,7 +13,41 @@ type CartItem = {
   image?: string;
   imageUrl?: string;
   img?: string;
+  size?: "Small" | "Medium" | "Large";
+  extraHotChilli?: boolean;
 };
+
+/* =========================================================
+   PRICE HELPERS (same as checkout page)
+========================================================= */
+
+const getBasePrice = (price: string | number) => {
+  const parsedPrice = Number.parseFloat(
+    String(price).replace(/[^0-9.]/g, "")
+  );
+  return Number.isFinite(parsedPrice) ? parsedPrice : 0;
+};
+
+const getSizePrice = (size?: "Small" | "Medium" | "Large") => {
+  switch (size) {
+    case "Medium": return 1;
+    case "Large": return 2;
+    case "Small":
+    default: return 0;
+  }
+};
+
+const getExtraHotChilliPrice = (extraHotChilli?: boolean) =>
+  extraHotChilli ? 0.5 : 0;
+
+const getUnitPrice = (item: CartItem) =>
+  getBasePrice(item.price) +
+  getSizePrice(item.size) +
+  getExtraHotChilliPrice(item.extraHotChilli);
+
+const getLineTotal = (item: CartItem) =>
+  getUnitPrice(item) * item.quantity;
+
 
 type CheckoutInfo = {
   firstName?: string;
@@ -27,8 +61,11 @@ type CheckoutInfo = {
   tip?: number;
   walletAmount?: number;
   walletBalance?: number;
+  couponCode?: string;
+  couponDiscount?: number;
   total?: number;
 };
+
 
 export default function ConfirmationPage() {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -78,29 +115,17 @@ export default function ConfirmationPage() {
   }, []);
 
   const subtotal = useMemo(() => {
-    return cartItems.reduce((sum, item) => {
-      const price = Number.parseFloat(
-        String(item.price).replace(/[^0-9.]/g, "")
-      );
-
-      const quantity = Number.isFinite(item.quantity)
-        ? item.quantity
-        : 0;
-
-      return (
-        sum +
-        (Number.isFinite(price) ? price : 0) * quantity
-      );
-    }, 0);
+    return cartItems.reduce((sum, item) => sum + getLineTotal(item), 0);
   }, [cartItems]);
 
-  const serviceFee = 1.39;
+
+  const serviceFee = 1.99;
   const bagCharges = 0.29;
 
   const isPickup =
     checkoutInfo.orderType === "pickup";
 
-  const deliveryFee = isPickup ? 0 : 3.59;
+  const deliveryFee = isPickup ? 0 : 3.99;
 
   const tip =
     typeof checkoutInfo.tip === "number" &&
@@ -114,21 +139,30 @@ export default function ConfirmationPage() {
       ? checkoutInfo.walletAmount
       : 0;
 
+  const couponDiscount =
+    typeof checkoutInfo.couponDiscount === "number" &&
+    Number.isFinite(checkoutInfo.couponDiscount)
+      ? checkoutInfo.couponDiscount
+      : 0;
+
+  const couponCode = checkoutInfo.couponCode || "";
+
   /*
    * Use the exact total calculated on Checkout.
-   * This keeps Confirmation in sync with tip + wallet
+   * This keeps Confirmation in sync with tip + wallet + coupon
    * and any other amount already calculated previously.
    */
   const total =
     typeof checkoutInfo.total === "number" &&
     Number.isFinite(checkoutInfo.total)
       ? checkoutInfo.total
-      : subtotal +
+      : Math.max(0, subtotal +
         deliveryFee +
         serviceFee +
         bagCharges +
         tip -
-        walletAmount;
+        walletAmount -
+        couponDiscount);
 
   const address = isPickup
     ? "49 Kilmarnock Road, Glasgow"
@@ -466,20 +500,10 @@ export default function ConfirmationPage() {
             {cartItems.length > 0 ? (
               cartItems.map((item, index) => {
 
-                const price = Number.parseFloat(
-                  String(item.price).replace(/[^0-9.]/g, "")
-                );
-
-                const quantity = Number.isFinite(
-                  item.quantity
-                )
-                  ? item.quantity
-                  : 0;
-
-                const lineTotal =
-                  (Number.isFinite(price)
-                    ? price
-                    : 0) * quantity;
+                const basePrice = getBasePrice(item.price);
+                const sizePrice = getSizePrice(item.size);
+                const unitPrice = getUnitPrice(item);
+                const lineTotal = getLineTotal(item);
 
                 const image =
                   item.image ||
@@ -491,7 +515,7 @@ export default function ConfirmationPage() {
                     key={`${item.name}-${index}`}
                     className="
                       flex
-                      items-center
+                      items-start
                       gap-3
                     "
                   >
@@ -542,15 +566,38 @@ export default function ConfirmationPage() {
                         {item.name}
                       </p>
 
+                      <p className="mt-1 text-[10px] text-[#888]">
+                        Base: £{basePrice.toFixed(2)}
+                      </p>
+
+                      {item.size && (
+                        <p className="mt-0.5 text-[10px] font-medium text-[#666]">
+                          Size: <span className="font-semibold">{item.size}</span>
+                          {sizePrice > 0 && (
+                            <span className="ml-1 text-[#888]">+£{sizePrice.toFixed(2)}</span>
+                          )}
+                        </p>
+                      )}
+
+                      {item.extraHotChilli && (
+                        <p className="mt-0.5 text-[10px] font-medium text-[#666]">
+                          Extra Hot Chilli <span className="text-[#888]">+£0.50</span>
+                        </p>
+                      )}
+
+                      <p className="mt-0.5 text-[10px] font-semibold text-[#555]">
+                        Unit: £{unitPrice.toFixed(2)}
+                      </p>
+
                       <p
                         className="
-                          mt-1
+                          mt-0.5
                           text-[10px]
                           text-[#888]
                           sm:text-[11px]
                         "
                       >
-                        × {quantity}
+                        × {item.quantity}
                       </p>
 
                     </div>
@@ -586,6 +633,7 @@ export default function ConfirmationPage() {
             )}
 
           </div>
+
 
           {/* =================================================
               PRICE SUMMARY
@@ -721,6 +769,29 @@ export default function ConfirmationPage() {
 
                   <span className="font-semibold text-[#292929]">
                     -£{walletAmount.toFixed(2)}
+                  </span>
+                </div>
+              )}
+
+              {/* COUPON */}
+
+              {couponDiscount > 0 && (
+                <div
+                  className="
+                    flex
+                    justify-between
+                    text-[11px]
+                    font-semibold
+                    text-[#10b981]
+                    sm:text-[12px]
+                  "
+                >
+                  <span>
+                    Coupon {couponCode ? `(${couponCode})` : ""}
+                  </span>
+
+                  <span>
+                    -£{couponDiscount.toFixed(2)}
                   </span>
                 </div>
               )}
@@ -948,6 +1019,8 @@ export default function ConfirmationPage() {
                   bagCharges,
                   tip,
                   walletAmount,
+                  couponCode,
+                  couponDiscount,
                   total,
 
                   status: "Preparing",

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -21,6 +20,8 @@ type MenuSectionProps = {
 
 type CartItem = MenuItem & {
   quantity: number;
+  size?: "Small" | "Medium" | "Large";
+  extraHotChilli?: boolean;
 };
 
 export default function MenuSection({
@@ -34,6 +35,10 @@ export default function MenuSection({
   const [quantity, setQuantity] = useState(1);
   const [isFavourite, setIsFavourite] = useState(false);
   const [favouriteNames, setFavouriteNames] = useState<string[]>([]);
+  const [extraHotChilli, setExtraHotChilli] = useState(false);
+  const [selectedSize, setSelectedSize] = useState<
+    "Small" | "Medium" | "Large"
+  >("Medium");
 
   /* =========================
      CHECK LOGIN / FAVOURITES
@@ -168,6 +173,8 @@ export default function MenuSection({
     setSelectedItem(item);
     setQuantity(1);
     setIsFavourite(favouriteNames.includes(item.name));
+    setExtraHotChilli(false);
+    setSelectedSize("Medium");
   };
 
   /* =========================
@@ -177,6 +184,8 @@ export default function MenuSection({
     setSelectedItem(null);
     setQuantity(1);
     setIsFavourite(false);
+    setExtraHotChilli(false);
+    setSelectedSize("Medium");
   };
 
   /* =========================
@@ -190,7 +199,29 @@ export default function MenuSection({
     ? getPriceNumber(selectedItem.price)
     : 0;
 
-  const totalPrice = itemPrice * quantity;
+  /* =========================
+     SIZE PRICES
+  ========================== */
+  const sizePrices = {
+    Small: 0,
+    Medium: 1,
+    Large: 2,
+  };
+
+  const sizePrice = sizePrices[selectedSize];
+
+  /* =========================
+     EXTRA HOT CHILLI PRICE
+  ========================== */
+  const extraHotChilliPrice = extraHotChilli ? 0.5 : 0;
+
+  /* =========================
+     TOTAL PRICE
+  ========================== */
+  const singleItemTotal =
+    itemPrice + sizePrice + extraHotChilliPrice;
+
+  const totalPrice = singleItemTotal * quantity;
 
   /* =========================
      ADD TO CART
@@ -217,7 +248,10 @@ export default function MenuSection({
     }
 
     const existingItemIndex = existingCart.findIndex(
-      (cartItem) => cartItem.name === selectedItem.name
+      (cartItem) =>
+        cartItem.name === selectedItem.name &&
+        cartItem.size === selectedSize &&
+        cartItem.extraHotChilli === extraHotChilli
     );
 
     if (existingItemIndex !== -1) {
@@ -226,6 +260,8 @@ export default function MenuSection({
       existingCart.push({
         ...selectedItem,
         quantity,
+        size: selectedSize,
+        extraHotChilli,
       });
     }
 
@@ -244,8 +280,8 @@ export default function MenuSection({
       {/* =====================================================
           MENU SECTION
       ====================================================== */}
-      <section id={id}
-        
+      <section
+        id={id}
         className="
           w-full
           scroll-mt-[130px]
@@ -649,41 +685,137 @@ export default function MenuSection({
                   border-[#e5e5e5]
                 "
               >
-                <div className="flex items-center justify-between px-3 py-2">
+                {/* EXTRA HOT CHILLI */}
+                <button
+                  type="button"
+                  onClick={() =>
+                    setExtraHotChilli((current) => !current)
+                  }
+                  className="
+                    flex
+                    w-full
+                    items-center
+                    justify-between
+                    px-3
+                    py-2
+                    text-left
+                    transition-colors
+                    hover:bg-[#fafafa]
+                  "
+                >
                   <span className="text-[9px] text-[#555]">
                     Extra Hot Chilli
                   </span>
 
                   <div className="flex items-center gap-2">
                     <span className="text-[9px] text-[#777]">
-                      Free
+                      +£0.50
                     </span>
 
                     <span
-                      className="
-                        h-[14px]
-                        w-[14px]
+                      className={`
+                        flex
+                        h-[16px]
+                        w-[16px]
+                        items-center
+                        justify-center
                         rounded-full
                         border
-                        border-[#d5d5d5]
-                      "
-                    />
+                        transition-all
+                        ${
+                          extraHotChilli
+                            ? "border-[#ff542d] bg-[#ff542d]"
+                            : "border-[#d5d5d5] bg-white"
+                        }
+                      `}
+                    >
+                      {extraHotChilli && (
+                        <span className="text-[10px] font-bold text-white">
+                          ✓
+                        </span>
+                      )}
+                    </span>
                   </div>
-                </div>
+                </button>
               </div>
 
-              {/* SHOW MORE */}
-              <button
-                type="button"
-                className="
-                  mt-3
-                  text-[9px]
-                  font-medium
-                  text-[#ff542d]
-                "
-              >
-                Show More ↓
-              </button>
+              {/* SIZE */}
+              <div className="mt-4">
+                <div className="mb-2 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-[10px] font-semibold text-[#333]">
+                      Size
+                    </h3>
+
+                    <p className="mt-1 text-[7px] text-[#999]">
+                      Choose your size
+                    </p>
+                  </div>
+
+                  <span
+                    className="
+                      rounded-full
+                      bg-[#f1f1f1]
+                      px-2
+                      py-1
+                      text-[7px]
+                      font-semibold
+                      text-[#777]
+                    "
+                  >
+                    REQUIRED
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  {(["Small", "Medium", "Large"] as const).map(
+                    (size) => {
+                      const price = sizePrices[size];
+
+                      return (
+                        <button
+                          key={size}
+                          type="button"
+                          onClick={() => setSelectedSize(size)}
+                          className={`
+                            rounded-[7px]
+                            border
+                            px-2
+                            py-2
+                            text-[9px]
+                            font-medium
+                            transition-all
+                            ${
+                              selectedSize === size
+                                ? "border-[#ff542d] bg-[#ff542d] text-white"
+                                : "border-[#e1e1e1] bg-white text-[#555] hover:border-[#ff542d]"
+                            }
+                          `}
+                        >
+                          <span className="block">{size}</span>
+
+                          <span
+                            className={`
+                              mt-1
+                              block
+                              text-[8px]
+                              ${
+                                selectedSize === size
+                                  ? "text-white"
+                                  : "text-[#999]"
+                              }
+                            `}
+                          >
+                            {price === 0
+                              ? "Included"
+                              : `+£${price.toFixed(2)}`}
+                          </span>
+                        </button>
+                      );
+                    }
+                  )}
+                </div>
+              </div>
 
               {/* ADD-ONS */}
               <div

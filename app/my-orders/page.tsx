@@ -13,6 +13,8 @@ type CartItem = {
   image?: string;
   imageUrl?: string;
   img?: string;
+  size?: "Small" | "Medium" | "Large";
+  extraHotChilli?: boolean;
 };
 
 type OrderCard = {
@@ -24,7 +26,34 @@ type OrderCard = {
   status: "Preparing" | "Delivered" | "Cancelled" | "Picked up";
   orderType?: "delivery" | "pickup";
   cutlery?: string;
+  subtotal?: number;
+  deliveryFee?: number;
+  serviceFee?: number;
+  bagCharges?: number;
+  tip?: number;
+  walletAmount?: number;
+  couponCode?: string;
+  couponDiscount?: number;
 };
+
+/* =========================================================
+   PRICE HELPERS
+========================================================= */
+const getBasePrice = (price: string | number) => {
+  const p = Number.parseFloat(String(price).replace(/[^0-9.]/g, ""));
+  return Number.isFinite(p) ? p : 0;
+};
+const getSizePrice = (size?: "Small" | "Medium" | "Large") => {
+  if (size === "Medium") return 1;
+  if (size === "Large") return 2;
+  return 0;
+};
+const getExtraHotChilliPrice = (e?: boolean) => (e ? 0.5 : 0);
+const getUnitPrice = (item: CartItem) =>
+  getBasePrice(item.price) + getSizePrice(item.size) + getExtraHotChilliPrice(item.extraHotChilli);
+const getLineTotal = (item: CartItem) => getUnitPrice(item) * item.quantity;
+
+
 
 const fallbackOrders: OrderCard[] = [
   {
@@ -161,7 +190,7 @@ export default function MyOrdersPage() {
         const items = cart as CartItem[];
 
         const total = items.reduce(
-          (sum, item) => sum + getPrice(item.price) * item.quantity,
+          (sum, item) => sum + getLineTotal(item),
           0
         );
 
@@ -597,16 +626,40 @@ export default function MyOrdersPage() {
                   {/* =================================================
                       EXPANDED DETAILS SECTION
                   ================================================= */}
-                  {expandedOrderId === order.id && (
-                    <div className="mt-4 animate-in slide-in-from-top-2 fade-in duration-300 border-t border-[#eeeeee] pt-4">
-                      <h4 className="text-[13px] font-bold text-[#2e3440] sm:text-[14px] mb-3">Order Items</h4>
-                      <div className="space-y-3">
-                        {order.items.map((item, idx) => {
-                          const itemImage = item.image || item.imageUrl || item.img || "/images/menupictures/product-placeholder.svg";
-                          return (
-                            <div key={idx} className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                <div className="h-[36px] w-[36px] overflow-hidden rounded-[6px] border border-[#eee] bg-[#f9f9f9] sm:h-[40px] sm:w-[40px]">
+                  {expandedOrderId === order.id && (() => {
+                    // Calculate correct subtotal from items using price helpers
+                    const calcSubtotal = order.subtotal ??
+                      order.items.reduce((s, it) => s + getLineTotal(it), 0);
+
+                    const dFee = order.deliveryFee ?? (order.orderType === "pickup" ? 0 : 3.99);
+                    const sFee = order.serviceFee ?? 1.99;
+                    const bCharge = order.bagCharges ?? 0.29;
+                    const tipAmt = order.tip ?? 0;
+                    const walletAmt = order.walletAmount ?? 0;
+                    const couponDisc = order.couponDiscount ?? 0;
+                    const couponCd = order.couponCode ?? "";
+
+                    return (
+                      <div className="mt-4 animate-in slide-in-from-top-2 fade-in duration-300 border-t border-[#eeeeee] pt-4">
+
+                        {/* ORDER ITEMS */}
+                        <h4 className="mb-3 text-[13px] font-bold text-[#2e3440] sm:text-[14px]">
+                          Order Items
+                        </h4>
+
+                        <div className="space-y-3">
+                          {order.items.map((item, idx) => {
+                            const itemImage = item.image || item.imageUrl || item.img || "/images/menupictures/product-placeholder.svg";
+                            const basePrice = getBasePrice(item.price);
+                            const sizePrice = getSizePrice(item.size);
+                            const unitPrice = getUnitPrice(item);
+                            const lineTotal = getLineTotal(item);
+
+                            return (
+                              <div key={idx} className="flex items-start gap-3">
+
+                                {/* IMAGE */}
+                                <div className="h-[44px] w-[44px] shrink-0 overflow-hidden rounded-[7px] border border-[#eee] bg-[#f9f9f9] sm:h-[48px] sm:w-[48px]">
                                   <img
                                     src={itemImage}
                                     alt={item.name}
@@ -616,29 +669,99 @@ export default function MyOrdersPage() {
                                     className="h-full w-full object-cover"
                                   />
                                 </div>
-                                <div>
-                                  <p className="text-[12px] font-semibold text-[#3f4550] sm:text-[13px]">{item.name}</p>
-                                  <p className="text-[11px] font-medium text-[#ff542d] sm:text-[12px]">Qty: {item.quantity}</p>
-                                </div>
-                              </div>
-                              <span className="text-[12px] font-bold text-[#2e3440] sm:text-[13px]">{item.price}</span>
-                            </div>
-                          );
-                        })}
-                      </div>
 
-                      <div className="mt-4 rounded-[8px] bg-[#fdfdfd] p-3 border border-[#f5f5f5]">
-                        <div className="flex items-center justify-between text-[12px] text-[#7d8591] sm:text-[13px]">
-                          <span>Subtotal</span>
-                          <span>£{order.total.toFixed(2)}</span>
+                                {/* INFO */}
+                                <div className="min-w-0 flex-1">
+                                  <p className="text-[12px] font-semibold text-[#3f4550] sm:text-[13px]">{item.name}</p>
+                                  <p className="mt-0.5 text-[10px] text-[#888]">Base: £{basePrice.toFixed(2)}</p>
+                                  {item.size && (
+                                    <p className="mt-0.5 text-[10px] font-medium text-[#666]">
+                                      Size: <span className="font-semibold">{item.size}</span>
+                                      {sizePrice > 0 && <span className="ml-1 text-[#888]">+£{sizePrice.toFixed(2)}</span>}
+                                    </p>
+                                  )}
+                                  {item.extraHotChilli && (
+                                    <p className="mt-0.5 text-[10px] font-medium text-[#666]">
+                                      Extra Hot Chilli <span className="text-[#888]">+£0.50</span>
+                                    </p>
+                                  )}
+                                  <p className="mt-0.5 text-[10px] font-semibold text-[#ff542d]">
+                                    Unit: £{unitPrice.toFixed(2)} × {item.quantity}
+                                  </p>
+                                </div>
+
+                                {/* LINE TOTAL */}
+                                <span className="shrink-0 text-[12px] font-bold text-[#2e3440] sm:text-[13px]">
+                                  £{lineTotal.toFixed(2)}
+                                </span>
+
+                              </div>
+                            );
+                          })}
                         </div>
-                        <div className="mt-2 flex items-center justify-between border-t border-dashed border-[#eee] pt-2 text-[13px] font-bold text-[#2e3440] sm:text-[14px]">
-                          <span>Total Paid</span>
-                          <span className="text-[#ff542d]">£{order.total.toFixed(2)}</span>
+
+                        {/* ORDER SUMMARY BREAKDOWN */}
+                        <div className="mt-4 rounded-[8px] bg-[#fdfdfd] p-3 border border-[#f0f0f0] space-y-2">
+
+                          <div className="flex items-center justify-between text-[11px] text-[#7d8591] sm:text-[12px]">
+                            <span>Subtotal</span>
+                            <span>£{calcSubtotal.toFixed(2)}</span>
+                          </div>
+
+                          <div className="flex items-center justify-between text-[11px] text-[#7d8591] sm:text-[12px]">
+                            <span>{order.orderType === "pickup" ? "Pick-up" : "Standard delivery"}</span>
+                            <span>£{dFee.toFixed(2)}</span>
+                          </div>
+
+                          <div className="flex items-center justify-between text-[11px] text-[#7d8591] sm:text-[12px]">
+                            <span>Service fee</span>
+                            <span>£{sFee.toFixed(2)}</span>
+                          </div>
+
+                          <div className="flex items-center justify-between text-[11px] text-[#7d8591] sm:text-[12px]">
+                            <span>Bag charges</span>
+                            <span>£{bCharge.toFixed(2)}</span>
+                          </div>
+
+                          {tipAmt > 0 && (
+                            <div className="flex items-center justify-between text-[11px] text-[#7d8591] sm:text-[12px]">
+                              <span>Tip</span>
+                              <span>£{tipAmt.toFixed(2)}</span>
+                            </div>
+                          )}
+
+                          {walletAmt > 0 && (
+                            <div className="flex items-center justify-between text-[11px] font-semibold text-[#292929] sm:text-[12px]">
+                              <span>Wallet</span>
+                              <span>-£{walletAmt.toFixed(2)}</span>
+                            </div>
+                          )}
+
+                          {couponDisc > 0 && (
+                            <div className="flex items-center justify-between text-[11px] font-semibold text-[#10b981] sm:text-[12px]">
+                              <span>Coupon {couponCd ? `(${couponCd})` : ""}</span>
+                              <span>-£{couponDisc.toFixed(2)}</span>
+                            </div>
+                          )}
+
+                          {order.cutlery && (
+                            <div className="flex items-center justify-between text-[11px] text-[#7d8591] sm:text-[12px]">
+                              <span>Cutlery</span>
+                              <span className={`font-semibold ${order.cutlery === "Yes" ? "text-[#ff542d]" : "text-[#555]"}`}>
+                                {order.cutlery}
+                              </span>
+                            </div>
+                          )}
+
+                          <div className="flex items-center justify-between border-t border-dashed border-[#eee] pt-2 text-[13px] font-bold text-[#2e3440] sm:text-[14px]">
+                            <span>Total Paid</span>
+                            <span className="text-[#ff542d]">£{order.total.toFixed(2)}</span>
+                          </div>
+
                         </div>
                       </div>
-                    </div>
-                  )}
+                    );
+                  })()}
 
                 </div>
               </article>

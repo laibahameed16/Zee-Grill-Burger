@@ -12,6 +12,8 @@ type CartItem = {
   image?: string;
   imageUrl?: string;
   img?: string;
+  size?: "Small" | "Medium" | "Large";
+  extraHotChilli?: boolean;
 };
 
 export default function CartDrawer() {
@@ -137,8 +139,50 @@ export default function CartDrawer() {
     return Number(price.replace("£", "").trim()) || 0;
   };
 
+  /* =========================
+     SIZE PRICE
+  ========================== */
+  const getSizePrice = (
+    size?: "Small" | "Medium" | "Large"
+  ) => {
+    if (size === "Small") return 0;
+    if (size === "Medium") return 1;
+    if (size === "Large") return 2;
+
+    return 0;
+  };
+
+  /* =========================
+     EXTRA HOT CHILLI PRICE
+  ========================== */
+  const getExtraHotChilliPrice = (
+    extraHotChilli?: boolean
+  ) => {
+    return extraHotChilli ? 0.5 : 0;
+  };
+
+  /* =========================
+     ITEM TOTAL
+  ========================== */
+  const getItemUnitPrice = (item: CartItem) => {
+    const basePrice = getPriceNumber(item.price);
+    const sizePrice = getSizePrice(item.size);
+    const chilliPrice = getExtraHotChilliPrice(
+      item.extraHotChilli
+    );
+
+    return basePrice + sizePrice + chilliPrice;
+  };
+
+  const getItemTotal = (item: CartItem) => {
+    return getItemUnitPrice(item) * item.quantity;
+  };
+
+  /* =========================
+     SUBTOTAL
+  ========================== */
   const subtotal = cartItems.reduce((total, item) => {
-    return total + getPriceNumber(item.price) * item.quantity;
+    return total + getItemTotal(item);
   }, 0);
 
   const deliveryFee = orderType === "delivery" ? 3.99 : 0;
@@ -341,9 +385,7 @@ export default function CartDrawer() {
               sm:rounded-[16px]
             "
           >
-            {/* =================================================
-                DELIVERY
-            ================================================== */}
+            {/* DELIVERY */}
             <button
               type="button"
               onClick={() => setOrderType("delivery")}
@@ -365,7 +407,6 @@ export default function CartDrawer() {
                 }
               `}
             >
-              {/* DELIVERY ICON */}
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
@@ -419,9 +460,7 @@ export default function CartDrawer() {
               </span>
             </button>
 
-            {/* =================================================
-                COLLECTION
-            ================================================== */}
+            {/* COLLECTION */}
             <button
               type="button"
               onClick={() => setOrderType("collection")}
@@ -492,11 +531,6 @@ export default function CartDrawer() {
               </span>
             </button>
           </div>
-
-          {/* =====================================================
-              ADDRESS
-          ====================================================== */}
-          
         </div>
 
         {/* =====================================================
@@ -590,15 +624,14 @@ export default function CartDrawer() {
             ================================================== */
             <div className="pb-3">
               {cartItems.map((item, index) => {
-                /*
-                 * Cart item ki image.
-                 * Pehle image, phir imageUrl, phir img check hogi.
-                 */
                 const itemImage =
                   item.image ||
                   item.imageUrl ||
                   item.img ||
                   "/images/menupictures/product-placeholder.svg";
+
+                const unitPrice = getItemUnitPrice(item);
+                const itemTotal = getItemTotal(item);
 
                 return (
                   <div
@@ -610,9 +643,7 @@ export default function CartDrawer() {
                     "
                   >
                     <div className="flex gap-2.5 sm:gap-3">
-                      {/* =================================================
-                          PRODUCT IMAGE
-                      ================================================== */}
+                      {/* PRODUCT IMAGE */}
                       <div
                         className="
                           flex
@@ -654,9 +685,7 @@ export default function CartDrawer() {
                         />
                       </div>
 
-                      {/* =================================================
-                          CONTENT
-                      ================================================== */}
+                      {/* CONTENT */}
                       <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0">
@@ -673,22 +702,56 @@ export default function CartDrawer() {
                               {item.name}
                             </h3>
 
+                            {/* SIZE */}
+                            {item.size && (
+                              <p
+                                className="
+                                  mt-[3px]
+                                  text-[8px]
+                                  font-medium
+                                  text-[#555]
+
+                                  sm:text-[9px]
+                                "
+                              >
+                                Size:{" "}
+                                <span className="font-bold">
+                                  {item.size}
+                                </span>
+                                {getSizePrice(item.size) > 0 && (
+                                  <span className="ml-1 text-[#777]">
+                                    +£
+                                    {getSizePrice(item.size).toFixed(
+                                      2
+                                    )}
+                                  </span>
+                                )}
+                              </p>
+                            )}
+
+                            {/* EXTRA HOT CHILLI */}
+                            {item.extraHotChilli && (
+                              <p
+                                className="
+                                  mt-[2px]
+                                  text-[8px]
+                                  font-medium
+                                  text-[#555]
+
+                                  sm:text-[9px]
+                                "
+                              >
+                                Extra Hot Chilli
+                                <span className="ml-1 text-[#777]">
+                                  +£0.50
+                                </span>
+                              </p>
+                            )}
+
+                            {/* PRICE */}
                             <p
                               className="
-                                mt-[2px]
-                                truncate
-                                text-[8px]
-                                text-[#666]
-
-                                sm:text-[9px]
-                              "
-                            >
-                              • Choose your option: Large
-                            </p>
-
-                            <p
-                              className="
-                                mt-[3px]
+                                mt-[4px]
                                 text-[12px]
                                 font-bold
                                 text-[#ff542d]
@@ -696,18 +759,28 @@ export default function CartDrawer() {
                                 sm:text-[13px]
                               "
                             >
-                              £
-                              {(
-                                getPriceNumber(item.price) *
-                                item.quantity
-                              ).toFixed(2)}
+                              £{itemTotal.toFixed(2)}
                             </p>
+
+                            {/* UNIT PRICE */}
+                            {(item.size ||
+                              item.extraHotChilli) && (
+                              <p
+                                className="
+                                  mt-[1px]
+                                  text-[7px]
+                                  text-[#888]
+
+                                  sm:text-[8px]
+                                "
+                              >
+                                £{unitPrice.toFixed(2)} each
+                              </p>
+                            )}
                           </div>
                         </div>
 
-                        {/* =================================================
-                            QUANTITY
-                        ================================================== */}
+                        {/* QUANTITY */}
                         <div className="mt-1 flex items-center justify-between gap-2">
                           <div
                             className="
@@ -938,14 +1011,10 @@ export default function CartDrawer() {
               </p>
             </div>
 
-            {/* =================================================
-                NOTES
-            ================================================== */}
-            
+            {/* NOTES */}
+           
 
-            {/* =================================================
-                CHECKOUT
-            ================================================== */}
+            {/* CHECKOUT */}
             <Link
               href="/checkout"
               onClick={() => setIsOpen(false)}

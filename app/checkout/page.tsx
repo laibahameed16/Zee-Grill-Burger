@@ -1,9 +1,11 @@
-
 "use client";
 
 import Link from "next/link";
 import { useEffect, useState, type MouseEvent } from "react";
-import { showNotification, addPersistentNotification } from "@/lib/notifications";
+import {
+  showNotification,
+  addPersistentNotification,
+} from "@/lib/notifications";
 import Navbar from "@/components/home/Navbar";
 
 type OrderType = "delivery" | "pickup";
@@ -11,12 +13,64 @@ type OrderTime = "asap" | "schedule";
 
 type CartItem = {
   name: string;
-  description?: string;
+  description: string;
   price: string;
+  badge: "POPULAR" | "RECOMMENDED";
   quantity: number;
   image?: string;
   imageUrl?: string;
   img?: string;
+  size?: "Small" | "Medium" | "Large";
+  extraHotChilli?: boolean;
+};
+
+/* =====================================================
+   PRICE HELPERS
+===================================================== */
+
+const getBasePrice = (price: string | number) => {
+  const parsedPrice = Number.parseFloat(
+    String(price).replace(/[^0-9.]/g, "")
+  );
+
+  return Number.isFinite(parsedPrice) ? parsedPrice : 0;
+};
+
+const getSizePrice = (
+  size?: "Small" | "Medium" | "Large"
+) => {
+  switch (size) {
+    case "Medium":
+      return 1;
+    case "Large":
+      return 2;
+    case "Small":
+    default:
+      return 0;
+  }
+};
+
+const getExtraHotChilliPrice = (
+  extraHotChilli?: boolean
+) => {
+  return extraHotChilli ? 0.5 : 0;
+};
+
+const getUnitPrice = (item: CartItem) => {
+  const basePrice = getBasePrice(item.price);
+  const sizePrice = getSizePrice(item.size);
+  const extraHotChilliPrice =
+    getExtraHotChilliPrice(item.extraHotChilli);
+
+  return (
+    basePrice +
+    sizePrice +
+    extraHotChilliPrice
+  );
+};
+
+const getLineTotal = (item: CartItem) => {
+  return getUnitPrice(item) * item.quantity;
 };
 
 export default function CheckoutPage() {
@@ -28,8 +82,10 @@ export default function CheckoutPage() {
 
   const [time, setTime] = useState("17:00");
   const [coupon, setCoupon] = useState("");
-  const [appliedCouponCode, setAppliedCouponCode] = useState("");
-  const [couponDiscount, setCouponDiscount] = useState(0);
+  const [appliedCouponCode, setAppliedCouponCode] =
+    useState("");
+  const [couponDiscount, setCouponDiscount] =
+    useState(0);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -64,8 +120,10 @@ export default function CheckoutPage() {
   ====================================================== */
 
   const [tip, setTip] = useState<number>(0);
+
   const [isOtherTip, setIsOtherTip] =
     useState<boolean>(false);
+
   const [otherTip, setOtherTip] =
     useState<string>("");
 
@@ -142,10 +200,15 @@ export default function CheckoutPage() {
       setSavedAddresses([]);
     }
 
+    /* =================================================
+        LOAD CART
+    ================================================= */
+
     try {
       const savedCart = JSON.parse(
-        localStorage.getItem("zee-grill-cart") ||
-          "[]"
+        localStorage.getItem(
+          "zee-grill-cart"
+        ) || "[]"
       );
 
       setCartItems(
@@ -157,9 +220,15 @@ export default function CheckoutPage() {
       setCartItems([]);
     }
 
+    /* =================================================
+        LOAD USER
+    ================================================= */
+
     try {
       const savedUser =
-        localStorage.getItem("zee-grill-user");
+        localStorage.getItem(
+          "zee-grill-user"
+        );
 
       if (!savedUser) return;
 
@@ -182,16 +251,19 @@ export default function CheckoutPage() {
         }
 
         if (user.phone) {
-          setPhone(String(user.phone));
+          setPhone(
+            String(user.phone)
+          );
         }
 
         if (
           !user.firstName &&
           user.name
         ) {
-          const nameParts = String(user.name)
-            .trim()
-            .split(/\s+/);
+          const nameParts =
+            String(user.name)
+              .trim()
+              .split(/\s+/);
 
           setFirstName(
             nameParts[0] || ""
@@ -248,9 +320,12 @@ export default function CheckoutPage() {
               );
 
             if (
-              Number.isFinite(numericValue)
+              Number.isFinite(
+                numericValue
+              )
             ) {
-              foundBalance = numericValue;
+              foundBalance =
+                numericValue;
               break;
             }
           }
@@ -275,9 +350,12 @@ export default function CheckoutPage() {
               );
 
             if (
-              Number.isFinite(numericValue)
+              Number.isFinite(
+                numericValue
+              )
             ) {
-              foundBalance = numericValue;
+              foundBalance =
+                numericValue;
               break;
             }
           }
@@ -285,7 +363,10 @@ export default function CheckoutPage() {
       }
 
       setWalletBalance(
-        Math.max(0, foundBalance)
+        Math.max(
+          0,
+          foundBalance
+        )
       );
     } catch {
       setWalletBalance(0);
@@ -296,21 +377,17 @@ export default function CheckoutPage() {
       PRICE
   ====================================================== */
 
+  /*
+    IMPORTANT:
+    Subtotal ab EXACTLY wahi calculation use karta hai
+    jo products ke saamne line price ke liye use hoti hai.
+  */
+
   const subtotal = cartItems.reduce(
     (sum, item) => {
-      const price = Number.parseFloat(
-        String(item.price).replace(
-          /[^0-9.]/g,
-          ""
-        )
-      );
-
       return (
         sum +
-        (Number.isFinite(price)
-          ? price
-          : 0) *
-          item.quantity
+        getLineTotal(item)
       );
     },
     0
@@ -318,10 +395,10 @@ export default function CheckoutPage() {
 
   const deliveryFee =
     orderType === "delivery"
-      ? 3.59
+      ? 3.99
       : 0;
 
-  const serviceFee = 1.39;
+  const serviceFee = 1.99;
   const bagCharge = 0.29;
 
   /* =====================================================
@@ -329,11 +406,15 @@ export default function CheckoutPage() {
   ====================================================== */
 
   const parsedOtherTip =
-    Number.parseFloat(otherTip);
+    Number.parseFloat(
+      otherTip
+    );
 
   const selectedTip =
     isOtherTip
-      ? Number.isFinite(parsedOtherTip) &&
+      ? Number.isFinite(
+          parsedOtherTip
+        ) &&
         parsedOtherTip >= 0
         ? parsedOtherTip
         : 0
@@ -343,14 +424,15 @@ export default function CheckoutPage() {
       WALLET MAXIMUM
   ====================================================== */
 
-  const maxWalletUsable = Math.min(
-    walletBalance,
-    subtotal +
-      deliveryFee +
-      serviceFee +
-      bagCharge +
-      selectedTip
-  );
+  const maxWalletUsable =
+    Math.min(
+      walletBalance,
+      subtotal +
+        deliveryFee +
+        serviceFee +
+        bagCharge +
+        selectedTip
+    );
 
   /* =====================================================
       OTHER WALLET AMOUNT
@@ -385,8 +467,11 @@ export default function CheckoutPage() {
     selectedTip;
 
   const isFullWalletPayment =
-    totalBillBeforeCouponAndWallet > 0 &&
-    selectedWalletAmount >= totalBillBeforeCouponAndWallet - 0.01;
+    totalBillBeforeCouponAndWallet >
+      0 &&
+    selectedWalletAmount >=
+      totalBillBeforeCouponAndWallet -
+        0.01;
 
   const total =
     subtotal +
@@ -401,69 +486,138 @@ export default function CheckoutPage() {
       COUPON
   ====================================================== */
 
-  const VALID_COUPONS: Record<string, { discount: number; label: string }> = {
-    "SAVE10": { discount: 0.10, label: "10%" },
-    "ZEEGRILL10": { discount: 0.10, label: "10%" },
-    "WELCOME10": { discount: 0.10, label: "10%" },
-    "SAVE15": { discount: 0.15, label: "15%" },
-    "ZEEGRILL15": { discount: 0.15, label: "15%" },
-    "WELCOME15": { discount: 0.15, label: "15%" },
-    "SAVE20": { discount: 0.20, label: "20%" },
+  const VALID_COUPONS: Record<
+    string,
+    {
+      discount: number;
+      label: string;
+    }
+  > = {
+    SAVE10: {
+      discount: 0.1,
+      label: "10%",
+    },
+    ZEEGRILL10: {
+      discount: 0.1,
+      label: "10%",
+    },
+    WELCOME10: {
+      discount: 0.1,
+      label: "10%",
+    },
+    SAVE15: {
+      discount: 0.15,
+      label: "15%",
+    },
+    ZEEGRILL15: {
+      discount: 0.15,
+      label: "15%",
+    },
+    WELCOME15: {
+      discount: 0.15,
+      label: "15%",
+    },
+    SAVE20: {
+      discount: 0.2,
+      label: "20%",
+    },
   };
 
   const handleApplyCoupon = () => {
-    const code = coupon.trim().toUpperCase();
+    const code =
+      coupon.trim().toUpperCase();
 
     if (!code) {
-      showNotification("error", "Please enter a coupon code.");
+      showNotification(
+        "error",
+        "Please enter a coupon code."
+      );
       return;
     }
 
-    if (isFullWalletPayment || selectedWalletAmount >= totalBillBeforeCouponAndWallet) {
-      showNotification("error", "Coupon cannot be applied when paying full bill with wallet.");
+    if (
+      isFullWalletPayment ||
+      selectedWalletAmount >=
+        totalBillBeforeCouponAndWallet
+    ) {
+      showNotification(
+        "error",
+        "Coupon cannot be applied when paying full bill with wallet."
+      );
       return;
     }
 
     if (appliedCouponCode) {
-      showNotification("error", `Coupon "${appliedCouponCode}" is already applied.`);
+      showNotification(
+        "error",
+        `Coupon "${appliedCouponCode}" is already applied.`
+      );
       return;
     }
 
     if (subtotal < 1) {
-      showNotification("error", "Coupon requires items in your cart.");
+      showNotification(
+        "error",
+        "Coupon requires items in your cart."
+      );
       return;
     }
 
-    let couponData = VALID_COUPONS[code];
+    let couponData =
+      VALID_COUPONS[code];
+
     if (!couponData) {
-      const match = code.match(/(10|15|20|25|30|50)/);
+      const match =
+        code.match(
+          /(10|15|20|25|30|50)/
+        );
+
       if (match) {
-        const pct = parseInt(match[1], 10);
-        couponData = { discount: pct / 100, label: `${pct}%` };
+        const pct =
+          parseInt(
+            match[1],
+            10
+          );
+
+        couponData = {
+          discount: pct / 100,
+          label: `${pct}%`,
+        };
       }
     }
 
     if (!couponData) {
-      showNotification("error", `Coupon code "${code}" is not valid.`);
+      showNotification(
+        "error",
+        `Coupon code "${code}" is not valid.`
+      );
       return;
     }
 
-    const discountAmount = parseFloat((totalBillBeforeCouponAndWallet * couponData.discount).toFixed(2));
+    const discountAmount =
+      parseFloat(
+        (
+          totalBillBeforeCouponAndWallet *
+          couponData.discount
+        ).toFixed(2)
+      );
 
     setAppliedCouponCode(code);
-    setCouponDiscount(discountAmount);
+    setCouponDiscount(
+      discountAmount
+    );
     setCoupon("");
 
-    // Toast notification requirement: "10% discount apply on your total bill"
     showNotification(
       "success",
       `${couponData.label} discount apply on your total bill`
     );
 
-    // Persistent notification
     addPersistentNotification(
       `Coupon Applied! 🎟️`,
-      `${couponData.label} discount apply on your total bill. You saved £${discountAmount.toFixed(2)}.`,
+      `${couponData.label} discount apply on your total bill. You saved £${discountAmount.toFixed(
+        2
+      )}.`,
       "coupon"
     );
   };
@@ -475,7 +629,10 @@ export default function CheckoutPage() {
   const handleSelectSavedAddress = (
     addr: any
   ) => {
-    setSelectedAddressId(addr.id);
+    setSelectedAddressId(
+      addr.id
+    );
+
     setIsManualAddress(false);
 
     const streetLine = [
@@ -491,10 +648,20 @@ export default function CheckoutPage() {
         ""
     );
 
-    let floorVal = addr.floor || "";
-    if (addr.address && !streetLine.includes(addr.address)) {
-      floorVal = floorVal ? `${floorVal}, ${addr.address}` : addr.address;
+    let floorVal =
+      addr.floor || "";
+
+    if (
+      addr.address &&
+      !streetLine.includes(
+        addr.address
+      )
+    ) {
+      floorVal = floorVal
+        ? `${floorVal}, ${addr.address}`
+        : addr.address;
     }
+
     setFloor(floorVal);
 
     if (
@@ -507,17 +674,34 @@ export default function CheckoutPage() {
     }
 
     if (addr.contactName) {
-      const parts = String(addr.contactName).trim().split(/\s+/);
-      setFirstName(parts[0] || "");
-      setLastName(parts.slice(1).join(" ") || "");
+      const parts =
+        String(
+          addr.contactName
+        )
+          .trim()
+          .split(/\s+/);
+
+      setFirstName(
+        parts[0] || ""
+      );
+
+      setLastName(
+        parts
+          .slice(1)
+          .join(" ") || ""
+      );
     }
-    
+
     if (addr.postcode) {
-      setPostcode(addr.postcode);
+      setPostcode(
+        addr.postcode
+      );
     }
-    
+
     if (addr.company) {
-      setCompany(addr.company);
+      setCompany(
+        addr.company
+      );
     }
   };
 
@@ -553,9 +737,13 @@ export default function CheckoutPage() {
       return;
     }
 
-    const normalizedPhone = phone
-      .replace(/[\s()-]/g, "")
-      .trim();
+    const normalizedPhone =
+      phone
+        .replace(
+          /[\s()-]/g,
+          ""
+        )
+        .trim();
 
     const isValidUKPhone =
       /^(?:\+44|0)(?:7\d{9}|1\d{8,9}|2\d{8,9})$/.test(
@@ -566,15 +754,20 @@ export default function CheckoutPage() {
       firstName,
       lastName,
       phone,
-      ...(orderType === "delivery"
-        ? [street, postcode]
+      ...(orderType ===
+      "delivery"
+        ? [
+            street,
+            postcode,
+          ]
         : []),
     ];
 
     const allRequiredFieldsFilled =
       requiredFields.every(
         (field) =>
-          field.trim().length > 0
+          field.trim().length >
+          0
       );
 
     if (
@@ -601,26 +794,46 @@ export default function CheckoutPage() {
       return;
     }
 
-    if (orderType === "delivery") {
-      const isValidUKPostcode = /^[A-Z]{1,2}[0-9][A-Z0-9]?\s?[0-9][A-Z]{2}$/i.test(postcode.trim());
-      if (!isValidUKPostcode) {
+    if (
+      orderType ===
+      "delivery"
+    ) {
+      const isValidUKPostcode =
+        /^[A-Z]{1,2}[0-9][A-Z0-9]?\s?[0-9][A-Z]{2}$/i.test(
+          postcode.trim()
+        );
+
+      if (
+        !isValidUKPostcode
+      ) {
         event.preventDefault();
+
         showNotification(
           "error",
           "Please enter valid details (Valid UK postcode required)."
         );
+
         return;
       }
 
-      const fullCheckoutAddr = `${street} ${company} ${deliveryNotes} ${floor}`.toLowerCase();
-      const isStrictUKAddress = /(uk|united kingdom|england|scotland|wales|northern ireland|britain|gb|great britain|london|manchester|birmingham|liverpool|glasgow|edinburgh|leeds|sheffield|bristol)/i.test(fullCheckoutAddr);
-      
-      if (!isStrictUKAddress) {
+      const fullCheckoutAddr =
+        `${street} ${company} ${deliveryNotes} ${floor}`.toLowerCase();
+
+      const isStrictUKAddress =
+        /(uk|united kingdom|england|scotland|wales|northern ireland|britain|gb|great britain|london|manchester|birmingham|liverpool|glasgow|edinburgh|leeds|sheffield|bristol)/i.test(
+          fullCheckoutAddr
+        );
+
+      if (
+        !isStrictUKAddress
+      ) {
         event.preventDefault();
+
         showNotification(
           "error",
           "Please enter valid details (Address must be in the UK)."
         );
+
         return;
       }
     }
@@ -645,13 +858,20 @@ export default function CheckoutPage() {
         orderTime,
         time,
         cutlery:
-          cutlery ? "Yes" : "No",
+          cutlery
+            ? "Yes"
+            : "No",
         tip: selectedTip,
         walletAmount:
           selectedWalletAmount,
         walletBalance,
-        couponCode: appliedCouponCode,
+        couponCode:
+          appliedCouponCode,
         couponDiscount,
+        subtotal,
+        deliveryFee,
+        serviceFee,
+        bagCharge,
         total,
       })
     );
@@ -1940,6 +2160,7 @@ export default function CheckoutPage() {
           >
 
             <div className="flex items-center justify-between">
+
               <h2
                 className="
                   text-[20px]
@@ -1968,25 +2189,47 @@ export default function CheckoutPage() {
               >
                 + Add Menu
               </Link>
+
             </div>
 
             {/* PRODUCTS */}
 
             <div className="mt-4 space-y-4">
 
-              {cartItems.length >
-              0 ? (
+              {cartItems.length > 0 ? (
+
                 cartItems.map(
                   (item, index) => {
 
-                    const itemPrice =
-                      Number.parseFloat(
-                        String(
-                          item.price
-                        ).replace(
-                          /[^0-9.]/g,
-                          ""
-                        )
+                    /*
+                      IMPORTANT:
+                      Same getUnitPrice() function is used
+                      for product price and subtotal.
+                    */
+
+                    const basePrice =
+                      getBasePrice(
+                        item.price
+                      );
+
+                    const sizePrice =
+                      getSizePrice(
+                        item.size
+                      );
+
+                    const extraHotChilliPrice =
+                      getExtraHotChilliPrice(
+                        item.extraHotChilli
+                      );
+
+                    const unitPrice =
+                      getUnitPrice(
+                        item
+                      );
+
+                    const lineTotal =
+                      getLineTotal(
+                        item
                       );
 
                     const image =
@@ -1994,20 +2237,12 @@ export default function CheckoutPage() {
                       item.imageUrl ||
                       item.img;
 
-                    const lineTotal =
-                      (Number.isFinite(
-                        itemPrice
-                      )
-                        ? itemPrice
-                        : 0) *
-                      item.quantity;
-
                     return (
                       <div
                         key={`${item.name}-${index}`}
                         className="
                           flex
-                          items-center
+                          items-start
                           gap-3
                         "
                       >
@@ -2059,22 +2294,98 @@ export default function CheckoutPage() {
                             {item.name}
                           </p>
 
+                          {/* BASE PRICE */}
+
                           <p
                             className="
                               mt-1
+                              text-[10px]
+                              text-[#777]
+                            "
+                          >
+                            Base price: £
+                            {basePrice.toFixed(
+                              2
+                            )}
+                          </p>
+
+                          {/* SIZE */}
+
+                          {item.size && (
+                            <p
+                              className="
+                                mt-0.5
+                                text-[10px]
+                                font-medium
+                                text-[#666]
+                              "
+                            >
+                              Size:{" "}
+                              <span className="font-semibold">
+                                {item.size}
+                              </span>
+
+                              {sizePrice > 0 && (
+                                <span className="ml-1 text-[#888]">
+                                  +£
+                                  {sizePrice.toFixed(
+                                    2
+                                  )}
+                                </span>
+                              )}
+                            </p>
+                          )}
+
+                          {/* EXTRA HOT CHILLI */}
+
+                          {item.extraHotChilli && (
+                            <p
+                              className="
+                                mt-0.5
+                                text-[10px]
+                                font-medium
+                                text-[#666]
+                              "
+                            >
+                              Extra Hot Chilli{" "}
+                              <span className="text-[#888]">
+                                +£0.50
+                              </span>
+                            </p>
+                          )}
+
+                          {/* UNIT PRICE */}
+
+                          <p
+                            className="
+                              mt-1
+                              text-[10px]
+                              font-semibold
+                              text-[#555]
+                            "
+                          >
+                            Unit price: £
+                            {unitPrice.toFixed(
+                              2
+                            )}
+                          </p>
+
+                          {/* QUANTITY */}
+
+                          <p
+                            className="
+                              mt-0.5
                               text-[11px]
                               text-[#888]
                             "
                           >
                             ×{" "}
-                            {
-                              item.quantity
-                            }
+                            {item.quantity}
                           </p>
 
                         </div>
 
-                        {/* PRICE */}
+                        {/* FINAL LINE PRICE */}
 
                         <p
                           className="
@@ -2094,7 +2405,9 @@ export default function CheckoutPage() {
                     );
                   }
                 )
+
               ) : (
+
                 <p
                   className="
                     py-3
@@ -2104,6 +2417,7 @@ export default function CheckoutPage() {
                 >
                   Your cart is empty.
                 </p>
+
               )}
 
             </div>
@@ -2122,6 +2436,7 @@ export default function CheckoutPage() {
                 text-[#ff542d]
               "
             >
+
               <span className="mr-2">
                 {orderType ===
                 "delivery"
@@ -2133,6 +2448,7 @@ export default function CheckoutPage() {
               "delivery"
                 ? "Delivery"
                 : "Pick-up"}
+
             </div>
 
             {/* TIME */}
@@ -2149,6 +2465,7 @@ export default function CheckoutPage() {
                 text-[#ff542d]
               "
             >
+
               <span className="mr-2">
                 ◷
               </span>
@@ -2157,6 +2474,7 @@ export default function CheckoutPage() {
               "asap"
                 ? `ASAP · ${time}`
                 : `Scheduled · ${time}`}
+
             </div>
 
             {/* COUPON */}
@@ -2175,6 +2493,7 @@ export default function CheckoutPage() {
               </p>
 
               {appliedCouponCode ? (
+
                 <div
                   className="
                     flex
@@ -2188,26 +2507,62 @@ export default function CheckoutPage() {
                     py-2.5
                   "
                 >
+
                   <div className="flex items-center gap-2">
-                    <span className="text-[11px] font-bold text-[#10b981]">
-                      🎟️ {appliedCouponCode}
+
+                    <span
+                      className="
+                        text-[11px]
+                        font-bold
+                        text-[#10b981]
+                      "
+                    >
+                      🎟️{" "}
+                      {
+                        appliedCouponCode
+                      }
                     </span>
-                    <span className="text-[10px] text-[#555]">
-                      —£{couponDiscount.toFixed(2)} saved
+
+                    <span
+                      className="
+                        text-[10px]
+                        text-[#555]
+                      "
+                    >
+                      —£
+                      {couponDiscount.toFixed(
+                        2
+                      )}
+                      {" "}
+                      saved
                     </span>
+
                   </div>
+
                   <button
                     type="button"
                     onClick={() => {
-                      setAppliedCouponCode("");
-                      setCouponDiscount(0);
+                      setAppliedCouponCode(
+                        ""
+                      );
+                      setCouponDiscount(
+                        0
+                      );
                     }}
-                    className="text-[10px] font-semibold text-[#e44] hover:underline"
+                    className="
+                      text-[10px]
+                      font-semibold
+                      text-[#e44]
+                      hover:underline
+                    "
                   >
                     Remove
                   </button>
+
                 </div>
+
               ) : isFullWalletPayment ? (
+
                 <div
                   className="
                     rounded-[8px]
@@ -2223,7 +2578,9 @@ export default function CheckoutPage() {
                 >
                   ⚠️ Coupon cannot be applied when paying full bill with wallet.
                 </div>
+
               ) : (
+
                 <div className="flex gap-2">
 
                   <input
@@ -2235,7 +2592,12 @@ export default function CheckoutPage() {
                       )
                     }
                     onKeyDown={(e) => {
-                      if (e.key === "Enter") handleApplyCoupon();
+                      if (
+                        e.key ===
+                        "Enter"
+                      ) {
+                        handleApplyCoupon();
+                      }
                     }}
                     placeholder="Enter coupon code"
                     className="
@@ -2253,7 +2615,9 @@ export default function CheckoutPage() {
 
                   <button
                     type="button"
-                    onClick={handleApplyCoupon}
+                    onClick={
+                      handleApplyCoupon
+                    }
                     className="
                       rounded-[8px]
                       bg-[#ff542d]
@@ -2269,6 +2633,7 @@ export default function CheckoutPage() {
                   </button>
 
                 </div>
+
               )}
 
             </div>
@@ -2364,7 +2729,9 @@ export default function CheckoutPage() {
 
               {/* COUPON DISCOUNT */}
 
-              {couponDiscount > 0 && (
+              {couponDiscount >
+                0 && (
+
                 <div
                   className="
                     flex
@@ -2374,13 +2741,24 @@ export default function CheckoutPage() {
                     text-[#10b981]
                   "
                 >
+
                   <span>
-                    Coupon ({appliedCouponCode})
+                    Coupon (
+                    {
+                      appliedCouponCode
+                    }
+                    )
                   </span>
+
                   <span>
-                    -£{couponDiscount.toFixed(2)}
+                    -£
+                    {couponDiscount.toFixed(
+                      2
+                    )}
                   </span>
+
                 </div>
+
               )}
 
             </div>
@@ -2394,6 +2772,7 @@ export default function CheckoutPage() {
               <div className="flex items-center justify-between">
 
                 <div>
+
                   <p
                     className="
                       text-[13px]
@@ -2413,16 +2792,23 @@ export default function CheckoutPage() {
                   >
                     Add a tip for your driver
                   </p>
+
                 </div>
 
-                {(selectedTip > 0 ||
+                {(selectedTip >
+                  0 ||
                   isOtherTip) && (
+
                   <button
                     type="button"
                     onClick={() => {
                       setTip(0);
-                      setIsOtherTip(false);
-                      setOtherTip("");
+                      setIsOtherTip(
+                        false
+                      );
+                      setOtherTip(
+                        ""
+                      );
                     }}
                     className="
                       text-[10px]
@@ -2433,6 +2819,7 @@ export default function CheckoutPage() {
                   >
                     Remove
                   </button>
+
                 )}
 
               </div>
@@ -2448,6 +2835,7 @@ export default function CheckoutPage() {
 
                 {[1, 2, 3].map(
                   (amount) => (
+
                     <button
                       key={amount}
                       type="button"
@@ -2458,7 +2846,9 @@ export default function CheckoutPage() {
                         setIsOtherTip(
                           false
                         );
-                        setOtherTip("");
+                        setOtherTip(
+                          ""
+                        );
                       }}
                       className={`
                         rounded-[8px]
@@ -2467,10 +2857,10 @@ export default function CheckoutPage() {
                         text-[11px]
                         font-semibold
                         transition-all
+
                         ${
                           !isOtherTip &&
-                          tip ===
-                            amount
+                          tip === amount
                             ? "border-[#ff542d] bg-[#ff542d] text-white"
                             : "border-[#dedede] bg-white text-[#555] hover:border-[#ff542d] hover:text-[#ff542d]"
                         }
@@ -2479,6 +2869,7 @@ export default function CheckoutPage() {
                       £
                       {amount}
                     </button>
+
                   )
                 )}
 
@@ -2491,7 +2882,9 @@ export default function CheckoutPage() {
                     setIsOtherTip(
                       false
                     );
-                    setOtherTip("");
+                    setOtherTip(
+                      ""
+                    );
                   }}
                   className={`
                     rounded-[8px]
@@ -2500,6 +2893,7 @@ export default function CheckoutPage() {
                     text-[11px]
                     font-semibold
                     transition-all
+
                     ${
                       !isOtherTip &&
                       tip === 0
@@ -2528,6 +2922,7 @@ export default function CheckoutPage() {
                     text-[11px]
                     font-semibold
                     transition-all
+
                     ${
                       isOtherTip
                         ? "border-[#ff542d] bg-[#ff542d] text-white"
@@ -2543,6 +2938,7 @@ export default function CheckoutPage() {
               {/* OTHER TIP INPUT */}
 
               {isOtherTip && (
+
                 <div
                   className="
                     mt-2
@@ -2553,6 +2949,7 @@ export default function CheckoutPage() {
                     px-3
                   "
                 >
+
                   <span className="text-[13px] text-[#777]">
                     £
                   </span>
@@ -2579,7 +2976,9 @@ export default function CheckoutPage() {
                       placeholder:text-[#aaa]
                     "
                   />
+
                 </div>
+
               )}
 
             </div>
@@ -2602,6 +3001,7 @@ export default function CheckoutPage() {
               <div className="flex items-center justify-between gap-3">
 
                 <div>
+
                   <p
                     className="
                       text-[13px]
@@ -2624,31 +3024,74 @@ export default function CheckoutPage() {
                       2
                     )}
                   </p>
+
                 </div>
 
                 {walletBalance >
                   0 && (
+
                   <button
                     type="button"
                     onClick={() => {
+
                       if (
                         selectedWalletAmount >
-                        0 ||
+                          0 ||
                         isOtherWallet
                       ) {
-                        setWalletAmount(0);
-                        setIsOtherWallet(false);
-                        setOtherWalletAmount("");
+
+                        setWalletAmount(
+                          0
+                        );
+
+                        setIsOtherWallet(
+                          false
+                        );
+
+                        setOtherWalletAmount(
+                          ""
+                        );
+
                       } else {
-                        const maxAmt = Number(maxWalletUsable.toFixed(2));
-                        setWalletAmount(maxAmt);
-                        setIsOtherWallet(false);
-                        if (appliedCouponCode && maxAmt >= totalBillBeforeCouponAndWallet - 0.01) {
-                          setAppliedCouponCode("");
-                          setCouponDiscount(0);
-                          showNotification("error", "Coupon removed because full bill is paid via wallet.");
+
+                        const maxAmt =
+                          Number(
+                            maxWalletUsable.toFixed(
+                              2
+                            )
+                          );
+
+                        setWalletAmount(
+                          maxAmt
+                        );
+
+                        setIsOtherWallet(
+                          false
+                        );
+
+                        if (
+                          appliedCouponCode &&
+                          maxAmt >=
+                            totalBillBeforeCouponAndWallet -
+                              0.01
+                        ) {
+
+                          setAppliedCouponCode(
+                            ""
+                          );
+
+                          setCouponDiscount(
+                            0
+                          );
+
+                          showNotification(
+                            "error",
+                            "Coupon removed because full bill is paid via wallet."
+                          );
                         }
+
                       }
+
                     }}
                     className={`
                       rounded-full
@@ -2658,6 +3101,7 @@ export default function CheckoutPage() {
                       text-[10px]
                       font-semibold
                       transition-all
+
                       ${
                         selectedWalletAmount >
                           0 ||
@@ -2673,12 +3117,14 @@ export default function CheckoutPage() {
                       ? "Remove"
                       : "Use Wallet"}
                   </button>
+
                 )}
 
               </div>
 
               {walletBalance >
                 0 && (
+
                 <div className="mt-3">
 
                   <p
@@ -2705,15 +3151,46 @@ export default function CheckoutPage() {
                     <button
                       type="button"
                       onClick={() => {
-                        const amt = Math.min(1, maxWalletUsable);
-                        setWalletAmount(amt);
-                        setIsOtherWallet(false);
-                        setOtherWalletAmount("");
-                        if (appliedCouponCode && amt >= totalBillBeforeCouponAndWallet - 0.01) {
-                          setAppliedCouponCode("");
-                          setCouponDiscount(0);
-                          showNotification("error", "Coupon removed because full bill is paid via wallet.");
+
+                        const amt =
+                          Math.min(
+                            1,
+                            maxWalletUsable
+                          );
+
+                        setWalletAmount(
+                          amt
+                        );
+
+                        setIsOtherWallet(
+                          false
+                        );
+
+                        setOtherWalletAmount(
+                          ""
+                        );
+
+                        if (
+                          appliedCouponCode &&
+                          amt >=
+                            totalBillBeforeCouponAndWallet -
+                              0.01
+                        ) {
+
+                          setAppliedCouponCode(
+                            ""
+                          );
+
+                          setCouponDiscount(
+                            0
+                          );
+
+                          showNotification(
+                            "error",
+                            "Coupon removed because full bill is paid via wallet."
+                          );
                         }
+
                       }}
                       className={`
                         rounded-[8px]
@@ -2721,6 +3198,7 @@ export default function CheckoutPage() {
                         py-2
                         text-[11px]
                         font-semibold
+
                         ${
                           !isOtherWallet &&
                           walletAmount ===
@@ -2741,15 +3219,46 @@ export default function CheckoutPage() {
                     <button
                       type="button"
                       onClick={() => {
-                        const amt = Math.min(2, maxWalletUsable);
-                        setWalletAmount(amt);
-                        setIsOtherWallet(false);
-                        setOtherWalletAmount("");
-                        if (appliedCouponCode && amt >= totalBillBeforeCouponAndWallet - 0.01) {
-                          setAppliedCouponCode("");
-                          setCouponDiscount(0);
-                          showNotification("error", "Coupon removed because full bill is paid via wallet.");
+
+                        const amt =
+                          Math.min(
+                            2,
+                            maxWalletUsable
+                          );
+
+                        setWalletAmount(
+                          amt
+                        );
+
+                        setIsOtherWallet(
+                          false
+                        );
+
+                        setOtherWalletAmount(
+                          ""
+                        );
+
+                        if (
+                          appliedCouponCode &&
+                          amt >=
+                            totalBillBeforeCouponAndWallet -
+                              0.01
+                        ) {
+
+                          setAppliedCouponCode(
+                            ""
+                          );
+
+                          setCouponDiscount(
+                            0
+                          );
+
+                          showNotification(
+                            "error",
+                            "Coupon removed because full bill is paid via wallet."
+                          );
                         }
+
                       }}
                       className={`
                         rounded-[8px]
@@ -2757,6 +3266,7 @@ export default function CheckoutPage() {
                         py-2
                         text-[11px]
                         font-semibold
+
                         ${
                           !isOtherWallet &&
                           walletAmount ===
@@ -2790,6 +3300,7 @@ export default function CheckoutPage() {
                         py-2
                         text-[11px]
                         font-semibold
+
                         ${
                           isOtherWallet
                             ? "border-[#ff542d] bg-[#ff542d] text-white"
@@ -2805,18 +3316,20 @@ export default function CheckoutPage() {
                   {/* OTHER WALLET INPUT */}
 
                   {isOtherWallet && (
+
                     <div
                       className="
                         mt-2
                         flex
                         items-center
                         rounded-[8px]
-                        bg-white
                         border
                         border-[#dedede]
+                        bg-white
                         px-3
                       "
                     >
+
                       <span className="text-[13px] text-[#777]">
                         £
                       </span>
@@ -2824,20 +3337,48 @@ export default function CheckoutPage() {
                       <input
                         type="number"
                         min="0"
-                        max={maxWalletUsable}
+                        max={
+                          maxWalletUsable
+                        }
                         step="0.01"
                         value={
                           otherWalletAmount
                         }
                         onChange={(e) => {
-                          const val = e.target.value;
-                          setOtherWalletAmount(val);
-                          const parsedVal = Number.parseFloat(val) || 0;
-                          if (appliedCouponCode && parsedVal >= totalBillBeforeCouponAndWallet - 0.01) {
-                            setAppliedCouponCode("");
-                            setCouponDiscount(0);
-                            showNotification("error", "Coupon removed because full bill is paid via wallet.");
+
+                          const val =
+                            e.target.value;
+
+                          setOtherWalletAmount(
+                            val
+                          );
+
+                          const parsedVal =
+                            Number.parseFloat(
+                              val
+                            ) || 0;
+
+                          if (
+                            appliedCouponCode &&
+                            parsedVal >=
+                              totalBillBeforeCouponAndWallet -
+                                0.01
+                          ) {
+
+                            setAppliedCouponCode(
+                              ""
+                            );
+
+                            setCouponDiscount(
+                              0
+                            );
+
+                            showNotification(
+                              "error",
+                              "Coupon removed because full bill is paid via wallet."
+                            );
                           }
+
                         }}
                         placeholder={`Enter amount (max £${maxWalletUsable.toFixed(
                           2
@@ -2853,7 +3394,9 @@ export default function CheckoutPage() {
                           placeholder:text-[#aaa]
                         "
                       />
+
                     </div>
+
                   )}
 
                   <div
@@ -2866,6 +3409,7 @@ export default function CheckoutPage() {
                       text-[#999]
                     "
                   >
+
                     <span>
                       Maximum usable: £
                       {maxWalletUsable.toFixed(
@@ -2876,15 +3420,47 @@ export default function CheckoutPage() {
                     <button
                       type="button"
                       onClick={() => {
-                        const maxAmt = Number(maxWalletUsable.toFixed(2));
-                        setWalletAmount(maxAmt);
-                        setIsOtherWallet(false);
-                        setOtherWalletAmount("");
-                        if (appliedCouponCode && maxAmt >= totalBillBeforeCouponAndWallet - 0.01) {
-                          setAppliedCouponCode("");
-                          setCouponDiscount(0);
-                          showNotification("error", "Coupon removed because full bill is paid via wallet.");
+
+                        const maxAmt =
+                          Number(
+                            maxWalletUsable.toFixed(
+                              2
+                            )
+                          );
+
+                        setWalletAmount(
+                          maxAmt
+                        );
+
+                        setIsOtherWallet(
+                          false
+                        );
+
+                        setOtherWalletAmount(
+                          ""
+                        );
+
+                        if (
+                          appliedCouponCode &&
+                          maxAmt >=
+                            totalBillBeforeCouponAndWallet -
+                              0.01
+                        ) {
+
+                          setAppliedCouponCode(
+                            ""
+                          );
+
+                          setCouponDiscount(
+                            0
+                          );
+
+                          showNotification(
+                            "error",
+                            "Coupon removed because full bill is paid via wallet."
+                          );
                         }
+
                       }}
                       className="
                         font-semibold
@@ -2894,13 +3470,16 @@ export default function CheckoutPage() {
                     >
                       Use maximum
                     </button>
+
                   </div>
 
                 </div>
+
               )}
 
               {walletBalance <=
                 0 && (
+
                 <p
                   className="
                     mt-2
@@ -2910,6 +3489,7 @@ export default function CheckoutPage() {
                 >
                   No wallet balance available.
                 </p>
+
               )}
 
             </div>
@@ -2966,9 +3546,7 @@ export default function CheckoutPage() {
                 <button
                   type="button"
                   onClick={() =>
-                    setCutlery(
-                      false
-                    )
+                    setCutlery(false)
                   }
                   className={`
                     rounded-full
@@ -2979,6 +3557,7 @@ export default function CheckoutPage() {
                     transition-all
                     duration-200
                     cursor-pointer
+
                     ${
                       !cutlery
                         ? "bg-[#ff542d] text-white shadow-xs"
@@ -2992,9 +3571,7 @@ export default function CheckoutPage() {
                 <button
                   type="button"
                   onClick={() =>
-                    setCutlery(
-                      true
-                    )
+                    setCutlery(true)
                   }
                   className={`
                     rounded-full
@@ -3005,6 +3582,7 @@ export default function CheckoutPage() {
                     transition-all
                     duration-200
                     cursor-pointer
+
                     ${
                       cutlery
                         ? "bg-[#ff542d] text-white shadow-xs"
@@ -3075,7 +3653,14 @@ export default function CheckoutPage() {
             ================================================== */}
 
             <Link
-              href={Math.max(0, total) <= 0 ? "/confirmation" : "/payment"}
+              href={
+                Math.max(
+                  0,
+                  total
+                ) <= 0
+                  ? "/confirmation"
+                  : "/payment"
+              }
               onClick={
                 handleProceedToPayment
               }
@@ -3099,7 +3684,10 @@ export default function CheckoutPage() {
             >
 
               <span>
-                {Math.max(0, total) <= 0
+                {Math.max(
+                  0,
+                  total
+                ) <= 0
                   ? "Confirm Order (Wallet)"
                   : "Proceed to payment"}
               </span>
