@@ -81,6 +81,14 @@ export default function CheckoutPage() {
     useState<OrderTime>("asap");
 
   const [time, setTime] = useState("17:00");
+  const [scheduledDate, setScheduledDate] =
+    useState(() => new Date().toISOString().slice(0, 10));
+
+  // Custom clock picker state
+  const [showClockPicker, setShowClockPicker] = useState(false);
+  const [clockHour, setClockHour] = useState(5);
+  const [clockMinute, setClockMinute] = useState(0);
+  const [clockAmPm, setClockAmPm] = useState<"AM" | "PM">("PM");
   const [coupon, setCoupon] = useState("");
   const [appliedCouponCode, setAppliedCouponCode] =
     useState("");
@@ -746,7 +754,7 @@ export default function CheckoutPage() {
         .trim();
 
     const isValidUKPhone =
-      /^(?:\+44|0)(?:7\d{9}|1\d{8,9}|2\d{8,9})$/.test(
+      /^\+447\d{9}$/.test(
         normalizedPhone
       );
 
@@ -1222,16 +1230,20 @@ export default function CheckoutPage() {
                 </span>
 
                 <input
-                  type="text"
+                  type="tel"
                   value={phone}
-                  onChange={(e) =>
-                    setPhone(
-                      e.target.value.replace(
-                        /[^0-9+()\s-]/g,
-                        ""
-                      )
-                    )
-                  }
+                  placeholder="+447XXXXXXXXX"
+                  onChange={(e) => {
+                    let val = e.target.value.replace(/[^0-9+]/g, "");
+                    if (val && !val.startsWith("+")) val = "+" + val;
+                    if (val.startsWith("+") && !val.startsWith("+447") && val.length > 1) {
+                      val = "+447" + val.replace(/^\+/, "").replace(/^447/, "");
+                    }
+                    if (!val.startsWith("+447") && val !== "" && val !== "+" && val !== "+4" && val !== "+44") {
+                      val = "+447" + val.replace(/^\+4{0,2}7?/, "");
+                    }
+                    setPhone(val);
+                  }}
                   className="
                     mt-1
                     w-full
@@ -1239,6 +1251,7 @@ export default function CheckoutPage() {
                     text-[15px]
                     text-[#444]
                     outline-none
+                    placeholder:text-[#bbb]
                   "
                 />
               </label>
@@ -1966,6 +1979,7 @@ export default function CheckoutPage() {
 
           <section
             className="
+              w-full
               rounded-[14px]
               bg-white
               p-4
@@ -1973,7 +1987,6 @@ export default function CheckoutPage() {
               sm:p-5
             "
           >
-
             <h2
               className="
                 mb-4
@@ -1986,8 +1999,6 @@ export default function CheckoutPage() {
               When
             </h2>
 
-            {/* ASAP / SCHEDULE */}
-
             <div
               className="
                 grid
@@ -1998,14 +2009,9 @@ export default function CheckoutPage() {
                 p-1
               "
             >
-
               <button
                 type="button"
-                onClick={() =>
-                  setOrderTime(
-                    "asap"
-                  )
-                }
+                onClick={() => setOrderTime("asap")}
                 className={`
                   h-[44px]
                   rounded-[7px]
@@ -2013,8 +2019,7 @@ export default function CheckoutPage() {
                   font-medium
                   transition-all
                   ${
-                    orderTime ===
-                    "asap"
+                    orderTime === "asap"
                       ? "bg-[#ff542d] text-white"
                       : "text-[#666]"
                   }
@@ -2025,11 +2030,7 @@ export default function CheckoutPage() {
 
               <button
                 type="button"
-                onClick={() =>
-                  setOrderTime(
-                    "schedule"
-                  )
-                }
+                onClick={() => setOrderTime("schedule")}
                 className={`
                   h-[44px]
                   rounded-[7px]
@@ -2037,8 +2038,7 @@ export default function CheckoutPage() {
                   font-medium
                   transition-all
                   ${
-                    orderTime ===
-                    "schedule"
+                    orderTime === "schedule"
                       ? "bg-[#ff542d] text-white"
                       : "text-[#666]"
                   }
@@ -2046,7 +2046,6 @@ export default function CheckoutPage() {
               >
                 Schedule for later
               </button>
-
             </div>
 
             <p
@@ -2056,65 +2055,221 @@ export default function CheckoutPage() {
                 text-[#888]
               "
             >
-              Opens at 17:00. You can still schedule a
-              future order.
+              Opens at 17:00. You can still schedule a future order.
             </p>
 
-            {/* TIME */}
-
-            <div
-              className="
-                mt-3
-                rounded-[9px]
-                bg-[#f3f3f3]
-                px-4
-                py-3
-              "
-            >
-
-              <p
-                className="
-                  text-[11px]
-                  text-[#777]
-                "
-              >
-                Time
-              </p>
-
-              {orderTime ===
-              "asap" ? (
-                <p
+            {orderTime === "asap" ? null : (
+              <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <div
                   className="
-                    mt-1
-                    text-[15px]
-                    font-medium
-                    text-[#555]
+                    group
+                    rounded-[18px]
+                    border
+                    border-[#f7c9b7]
+                    bg-gradient-to-br
+                    from-[#fffaf7]
+                    to-[#fff0eb]
+                    p-3
+                    shadow-[0_10px_22px_rgba(255,84,45,0.08)]
+                    transition-all
+                    duration-200
+                    hover:-translate-y-0.5
+                    hover:border-[#ff9d7d]
+                    hover:shadow-[0_12px_26px_rgba(255,84,45,0.12)]
+                    focus-within:border-[#ff542d]
+                    focus-within:ring-4
+                    focus-within:ring-[#ff542d]/10
                   "
                 >
-                  {time}
-                </p>
-              ) : (
-                <input
-                  type="time"
-                  value={time}
-                  onChange={(e) =>
-                    setTime(
-                      e.target.value
-                    )
-                  }
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-[12px] bg-[#ffefe9] text-[20px] shadow-inner shadow-[#ffb9a7]/40">
+                      📅
+                    </div>
+
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10px] font-bold uppercase tracking-[1.4px] text-[#ff542d]">
+                        Select date
+                      </p>
+
+                      <input
+                        type="date"
+                        value={scheduledDate}
+                        min={new Date().toISOString().slice(0, 10)}
+                        onChange={(e) => setScheduledDate(e.target.value)}
+                        className="
+                          mt-1
+                          w-full
+                          cursor-pointer
+                          border-0
+                          bg-transparent
+                          p-0
+                          text-[14px]
+                          font-bold
+                          text-[#2d2d2d]
+                          outline-none
+                          [color-scheme:light]
+                          focus:ring-0
+                        "
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div
                   className="
-                    mt-1
-                    w-full
-                    bg-transparent
-                    text-[15px]
-                    text-[#555]
-                    outline-none
+                    relative
+                    group
+                    rounded-[18px]
+                    border
+                    border-[#f7c9b7]
+                    bg-gradient-to-br
+                    from-[#fffaf7]
+                    to-[#fff0eb]
+                    p-3
+                    shadow-[0_10px_22px_rgba(255,84,45,0.08)]
+                    transition-all
+                    duration-200
+                    hover:-translate-y-0.5
+                    hover:border-[#ff9d7d]
+                    hover:shadow-[0_12px_26px_rgba(255,84,45,0.12)]
                   "
-                />
-              )}
+                >
+                  <div
+                    onClick={() => setShowClockPicker(!showClockPicker)}
+                    className="flex items-center gap-3 cursor-pointer"
+                  >
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowClockPicker(!showClockPicker);
+                      }}
+                      className="flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-[12px] bg-[#ffefe9] text-[20px] shadow-inner shadow-[#ffb9a7]/40 transition-transform hover:scale-110 active:scale-95"
+                    >
+                      🕒
+                    </button>
 
-            </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[10px] font-bold uppercase tracking-[1.4px] text-[#ff542d]">
+                        Select time
+                      </p>
+                      <p className="mt-1 text-[14px] font-bold text-[#2d2d2d]">
+                        {String(clockHour).padStart(2, "0")}:{String(clockMinute).padStart(2, "0")} {clockAmPm}
+                      </p>
+                    </div>
+                  </div>
 
+                  {/* Clock Picker Popup */}
+                  {showClockPicker && (
+                    <>
+                      {/* Backdrop */}
+                      <div
+                        className="fixed inset-0 z-40"
+                        onClick={() => setShowClockPicker(false)}
+                      />
+
+                      {/* Clock Picker Card */}
+                      <div className="absolute left-1/2 bottom-full z-50 mb-2 -translate-x-1/2 rounded-[20px] border border-[#ffd8cc] bg-white px-5 py-4 shadow-[0_16px_40px_rgba(255,84,45,0.18)] w-[240px]">
+
+                        {/* Opening hours label */}
+                        <p className="mb-3 text-center text-[10px] font-bold uppercase tracking-[1.5px] text-[#ff542d]">
+                          Opening Hours · 5:00 PM – 10:30 PM
+                        </p>
+
+                        {/* Hour / Minute selectors */}
+                        <div className="flex items-center justify-center gap-3">
+
+                          {/* Hour column */}
+                          <div className="flex flex-col items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => setClockHour(h => h === 12 ? 1 : h + 1)}
+                              className="flex h-7 w-7 items-center justify-center rounded-full text-[#ff542d] transition hover:bg-[#ffefe9] active:scale-90 text-[18px] font-bold"
+                            >
+                              ∧
+                            </button>
+                            <span className="text-[28px] font-bold text-[#2d2d2d] w-[44px] text-center leading-none">
+                              {String(clockHour).padStart(2, "0")}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setClockHour(h => h === 1 ? 12 : h - 1)}
+                              className="flex h-7 w-7 items-center justify-center rounded-full text-[#ff542d] transition hover:bg-[#ffefe9] active:scale-90 text-[18px] font-bold"
+                            >
+                              ∨
+                            </button>
+                          </div>
+
+                          <span className="text-[28px] font-bold text-[#ff542d] leading-none pb-1">:</span>
+
+                          {/* Minute column */}
+                          <div className="flex flex-col items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => setClockMinute(m => m === 55 ? 0 : m + 5)}
+                              className="flex h-7 w-7 items-center justify-center rounded-full text-[#ff542d] transition hover:bg-[#ffefe9] active:scale-90 text-[18px] font-bold"
+                            >
+                              ∧
+                            </button>
+                            <span className="text-[28px] font-bold text-[#2d2d2d] w-[44px] text-center leading-none">
+                              {String(clockMinute).padStart(2, "0")}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => setClockMinute(m => m === 0 ? 55 : m - 5)}
+                              className="flex h-7 w-7 items-center justify-center rounded-full text-[#ff542d] transition hover:bg-[#ffefe9] active:scale-90 text-[18px] font-bold"
+                            >
+                              ∨
+                            </button>
+                          </div>
+
+                          {/* AM / PM */}
+                          <div className="flex flex-col gap-1 ml-1">
+                            <button
+                              type="button"
+                              onClick={() => setClockAmPm("AM")}
+                              className={`h-7 w-[38px] rounded-full text-[11px] font-bold transition ${
+                                clockAmPm === "AM"
+                                  ? "bg-[#ff542d] text-white shadow"
+                                  : "bg-[#f3f3f3] text-[#888]"
+                              }`}
+                            >
+                              AM
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setClockAmPm("PM")}
+                              className={`h-7 w-[38px] rounded-full text-[11px] font-bold transition ${
+                                clockAmPm === "PM"
+                                  ? "bg-[#ff542d] text-white shadow"
+                                  : "bg-[#f3f3f3] text-[#888]"
+                              }`}
+                            >
+                              PM
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Set Time button */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            let h24 = clockHour;
+                            if (clockAmPm === "AM" && clockHour === 12) h24 = 0;
+                            if (clockAmPm === "PM" && clockHour !== 12) h24 = clockHour + 12;
+                            setTime(`${String(h24).padStart(2, "0")}:${String(clockMinute).padStart(2, "0")}`);
+                            setShowClockPicker(false);
+                          }}
+                          className="mt-4 w-full rounded-[12px] bg-gradient-to-r from-[#ff542d] to-[#ff8c5a] py-2.5 text-[13px] font-bold text-white shadow-[0_4px_14px_rgba(255,84,45,0.35)] transition hover:shadow-[0_6px_18px_rgba(255,84,45,0.45)] active:scale-[0.98]"
+                        >
+                          Set time · {String(clockHour).padStart(2, "0")}:{String(clockMinute).padStart(2, "0")} {clockAmPm}
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
           </section>
 
         </div>
@@ -2164,7 +2319,7 @@ export default function CheckoutPage() {
                   border-[#ff542d]
                   px-3
                   py-1
-                  text-[11px]
+                  text-[12px]
                   font-semibold
                   text-[#ff542d]
                   transition-colors
@@ -2284,8 +2439,8 @@ export default function CheckoutPage() {
                           <p
                             className="
                               mt-1
-                              text-[10px]
-                              text-[#777]
+                              text-[12px]
+                              text-[#666]
                             "
                           >
                             Base price: £
@@ -2300,18 +2455,18 @@ export default function CheckoutPage() {
                             <p
                               className="
                                 mt-0.5
-                                text-[10px]
+                                text-[12px]
                                 font-medium
                                 text-[#666]
                               "
                             >
                               Size:{" "}
-                              <span className="font-semibold">
+                              <span className="font-semibold text-[#444]">
                                 {item.size}
                               </span>
 
                               {sizePrice > 0 && (
-                                <span className="ml-1 text-[#888]">
+                                <span className="ml-1 text-[#777]">
                                   +£
                                   {sizePrice.toFixed(
                                     2
@@ -2327,13 +2482,13 @@ export default function CheckoutPage() {
                             <p
                               className="
                                 mt-0.5
-                                text-[10px]
+                                text-[12px]
                                 font-medium
                                 text-[#666]
                               "
                             >
                               Extra Hot Chilli{" "}
-                              <span className="text-[#888]">
+                              <span className="text-[#777]">
                                 +£0.50
                               </span>
                             </p>
@@ -2344,7 +2499,7 @@ export default function CheckoutPage() {
                           <p
                             className="
                               mt-1
-                              text-[10px]
+                              text-[12px]
                               font-semibold
                               text-[#555]
                             "
@@ -2360,8 +2515,8 @@ export default function CheckoutPage() {
                           <p
                             className="
                               mt-0.5
-                              text-[11px]
-                              text-[#888]
+                              text-[13px]
+                              text-[#777]
                             "
                           >
                             ×{" "}
@@ -2396,7 +2551,7 @@ export default function CheckoutPage() {
                 <p
                   className="
                     py-3
-                    text-[13px]
+                    text-[14px]
                     text-[#888]
                   "
                 >
@@ -2416,7 +2571,7 @@ export default function CheckoutPage() {
                 bg-[#fff0eb]
                 px-4
                 py-3
-                text-[13px]
+                text-[14px]
                 font-medium
                 text-[#ff542d]
               "
@@ -2445,7 +2600,7 @@ export default function CheckoutPage() {
                 bg-[#fff0eb]
                 px-4
                 py-3
-                text-[13px]
+                text-[14px]
                 font-medium
                 text-[#ff542d]
               "
@@ -2457,8 +2612,8 @@ export default function CheckoutPage() {
 
               {orderTime ===
               "asap"
-                ? `ASAP · ${time}`
-                : `Scheduled · ${time}`}
+                ? `ASAP`
+                : `Scheduled · ${scheduledDate} · ${String(clockHour).padStart(2,"0")}:${String(clockMinute).padStart(2,"0")} ${clockAmPm}`}
 
             </div>
 
@@ -2497,7 +2652,7 @@ export default function CheckoutPage() {
 
                     <span
                       className="
-                        text-[11px]
+                        text-[12px]
                         font-bold
                         text-[#10b981]
                       "
@@ -2510,7 +2665,7 @@ export default function CheckoutPage() {
 
                     <span
                       className="
-                        text-[10px]
+                        text-[12px]
                         text-[#555]
                       "
                     >
@@ -2535,7 +2690,7 @@ export default function CheckoutPage() {
                       );
                     }}
                     className="
-                      text-[10px]
+                      text-[12px]
                       font-semibold
                       text-[#e44]
                       hover:underline
@@ -2556,7 +2711,7 @@ export default function CheckoutPage() {
                     bg-[#fff1f2]
                     px-3
                     py-2.5
-                    text-[11px]
+                    text-[12px]
                     font-medium
                     text-[#e11d48]
                   "
@@ -2592,7 +2747,7 @@ export default function CheckoutPage() {
                       bg-[#f3f3f3]
                       px-3
                       py-2.5
-                      text-[11px]
+                      text-[13px]
                       outline-none
                       placeholder:text-[#aaa]
                     "
@@ -2607,7 +2762,7 @@ export default function CheckoutPage() {
                       rounded-[8px]
                       bg-[#ff542d]
                       px-4
-                      text-[11px]
+                      text-[12px]
                       font-semibold
                       text-white
                       transition
@@ -2633,8 +2788,8 @@ export default function CheckoutPage() {
                 className="
                   flex
                   justify-between
-                  text-[13px]
-                  text-[#777]
+                  text-[15px]
+                  text-[#666]
                 "
               >
                 <span>
@@ -2653,8 +2808,8 @@ export default function CheckoutPage() {
                 className="
                   flex
                   justify-between
-                  text-[13px]
-                  text-[#777]
+                  text-[15px]
+                  text-[#666]
                 "
               >
                 <span>
@@ -2676,8 +2831,8 @@ export default function CheckoutPage() {
                 className="
                   flex
                   justify-between
-                  text-[13px]
-                  text-[#777]
+                  text-[15px]
+                  text-[#666]
                 "
               >
                 <span>
@@ -2696,8 +2851,8 @@ export default function CheckoutPage() {
                 className="
                   flex
                   justify-between
-                  text-[13px]
-                  text-[#777]
+                  text-[15px]
+                  text-[#666]
                 "
               >
                 <span>
@@ -2721,7 +2876,7 @@ export default function CheckoutPage() {
                   className="
                     flex
                     justify-between
-                    text-[13px]
+                    text-[15px]
                     font-semibold
                     text-[#10b981]
                   "
@@ -2771,8 +2926,8 @@ export default function CheckoutPage() {
                   <p
                     className="
                       mt-1
-                      text-[10px]
-                      text-[#aaa]
+                      text-[12px]
+                      text-[#888]
                     "
                   >
                     Add a tip for your driver
@@ -2796,7 +2951,7 @@ export default function CheckoutPage() {
                       );
                     }}
                     className="
-                      text-[10px]
+                      text-[12px]
                       font-medium
                       text-[#ff542d]
                       hover:underline
@@ -2839,7 +2994,7 @@ export default function CheckoutPage() {
                         rounded-[8px]
                         border
                         py-2
-                        text-[11px]
+                        text-[12px]
                         font-semibold
                         transition-all
 
@@ -2875,7 +3030,7 @@ export default function CheckoutPage() {
                     rounded-[8px]
                     border
                     py-2
-                    text-[11px]
+                    text-[12px]
                     font-semibold
                     transition-all
 
@@ -2904,7 +3059,7 @@ export default function CheckoutPage() {
                     rounded-[8px]
                     border
                     py-2
-                    text-[11px]
+                    text-[12px]
                     font-semibold
                     transition-all
 
@@ -2935,7 +3090,7 @@ export default function CheckoutPage() {
                   "
                 >
 
-                  <span className="text-[13px] text-[#777]">
+                  <span className="text-[14px] text-[#777]">
                     £
                   </span>
 
@@ -2955,7 +3110,7 @@ export default function CheckoutPage() {
                       bg-transparent
                       px-2
                       py-2.5
-                      text-[12px]
+                      text-[13px]
                       text-[#333]
                       outline-none
                       placeholder:text-[#aaa]
@@ -3000,8 +3155,8 @@ export default function CheckoutPage() {
                   <p
                     className="
                       mt-1
-                      text-[10px]
-                      text-[#888]
+                      text-[12px]
+                      text-[#666]
                     "
                   >
                     Available balance: £
@@ -3083,7 +3238,7 @@ export default function CheckoutPage() {
                       border
                       px-3
                       py-1.5
-                      text-[10px]
+                      text-[12px]
                       font-semibold
                       transition-all
 
@@ -3115,9 +3270,9 @@ export default function CheckoutPage() {
                   <p
                     className="
                       mb-2
-                      text-[10px]
+                      text-[12px]
                       font-medium
-                      text-[#777]
+                      text-[#666]
                     "
                   >
                     Amount to use
@@ -3181,7 +3336,7 @@ export default function CheckoutPage() {
                         rounded-[8px]
                         border
                         py-2
-                        text-[11px]
+                        text-[12px]
                         font-semibold
 
                         ${
@@ -3249,7 +3404,7 @@ export default function CheckoutPage() {
                         rounded-[8px]
                         border
                         py-2
-                        text-[11px]
+                        text-[12px]
                         font-semibold
 
                         ${
@@ -3283,7 +3438,7 @@ export default function CheckoutPage() {
                         rounded-[8px]
                         border
                         py-2
-                        text-[11px]
+                        text-[12px]
                         font-semibold
 
                         ${
@@ -3315,7 +3470,7 @@ export default function CheckoutPage() {
                       "
                     >
 
-                      <span className="text-[13px] text-[#777]">
+                      <span className="text-[14px] text-[#777]">
                         £
                       </span>
 
@@ -3373,7 +3528,7 @@ export default function CheckoutPage() {
                           bg-transparent
                           px-2
                           py-2.5
-                          text-[12px]
+                          text-[13px]
                           text-[#333]
                           outline-none
                           placeholder:text-[#aaa]
@@ -3390,8 +3545,8 @@ export default function CheckoutPage() {
                       flex
                       items-center
                       justify-between
-                      text-[9px]
-                      text-[#999]
+                      text-[11px]
+                      text-[#888]
                     "
                   >
 
@@ -3468,8 +3623,8 @@ export default function CheckoutPage() {
                 <p
                   className="
                     mt-2
-                    text-[10px]
-                    text-[#999]
+                    text-[12px]
+                    text-[#888]
                   "
                 >
                   No wallet balance available.
@@ -3506,8 +3661,8 @@ export default function CheckoutPage() {
                 <p
                   className="
                     mt-1
-                    text-[10px]
-                    text-[#aaa]
+                    text-[12px]
+                    text-[#888]
                   "
                 >
                   Would you like cutlery with your order?
@@ -3537,7 +3692,7 @@ export default function CheckoutPage() {
                     rounded-full
                     px-3.5
                     py-1.5
-                    text-[10px]
+                    text-[12px]
                     font-semibold
                     transition-all
                     duration-200
@@ -3562,7 +3717,7 @@ export default function CheckoutPage() {
                     rounded-full
                     px-3.5
                     py-1.5
-                    text-[10px]
+                    text-[12px]
                     font-semibold
                     transition-all
                     duration-200
@@ -3608,8 +3763,8 @@ export default function CheckoutPage() {
                 <p
                   className="
                     mt-1
-                    text-[10px]
-                    text-[#aaa]
+                    text-[12px]
+                    text-[#888]
                   "
                 >
                   Incl. fees and tax
@@ -3659,7 +3814,7 @@ export default function CheckoutPage() {
                 rounded-full
                 bg-[#292929]
                 px-5
-                text-[12px]
+                text-[13px]
                 font-semibold
                 text-white
                 transition-all

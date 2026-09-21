@@ -603,7 +603,7 @@ export default function Navbar() {
                   border
                   border-[#555]
                   px-4
-                  text-[10px]
+                  text-[12px]
                   text-black
                   transition-all
                   duration-200
@@ -672,7 +672,7 @@ export default function Navbar() {
                         px-4
                         py-3
                         text-left
-                        text-[10px]
+                        text-[12px]
                         font-medium
                         transition-colors
                         duration-150
@@ -846,7 +846,7 @@ export default function Navbar() {
                       <div className="min-w-0">
                         <p
                           className="
-                            text-[8px]
+                            text-[11px]
                             font-medium
                             uppercase
                             tracking-[1px]
@@ -860,7 +860,7 @@ export default function Navbar() {
                           className="
                             mt-0.5
                             truncate
-                            text-[11px]
+                            text-[12px]
                             font-bold
                             text-[#292929]
                           "
@@ -881,7 +881,7 @@ export default function Navbar() {
                         w-full
                         px-4
                         py-[11px]
-                        text-[10px]
+                        text-[12px]
                         font-medium
                         text-[#444]
                         transition-colors
@@ -904,7 +904,7 @@ export default function Navbar() {
                         border-[#eeeeee]
                         px-4
                         py-[11px]
-                        text-[10px]
+                        text-[12px]
                         font-medium
                         text-[#444]
                         transition-colors
@@ -930,7 +930,7 @@ export default function Navbar() {
                         border-[#eeeeee]
                         px-4
                         py-[11px]
-                        text-[10px]
+                        text-[12px]
                         font-medium
                         text-[#444]
                         transition-colors
@@ -958,7 +958,7 @@ export default function Navbar() {
                         border-[#eeeeee]
                         px-4
                         py-[11px]
-                        text-[10px]
+                        text-[12px]
                         font-medium
                         text-[#444]
                         transition-colors
@@ -983,7 +983,7 @@ export default function Navbar() {
                         px-4
                         py-[11px]
                         text-left
-                        text-[10px]
+                        text-[12px]
                         font-semibold
                         text-[#ff542d]
                         transition-colors

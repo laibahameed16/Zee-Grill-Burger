@@ -2,7 +2,7 @@
 
 import Navbar from "@/components/home/Navbar";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export interface SavedAddress {
   id: string;
@@ -18,12 +18,53 @@ export interface SavedAddress {
   createdAt?: number;
 }
 
+const getInitialSavedAddresses = (): SavedAddress[] => {
+  if (typeof window === "undefined") return [];
+
+  try {
+    const stored = localStorage.getItem("zee-grill-saved-addresses");
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      if (Array.isArray(parsed)) {
+        return parsed;
+      }
+    }
+
+    const legacy = localStorage.getItem("savedAddress");
+    if (legacy) {
+      const parsed = JSON.parse(legacy);
+      if (parsed && typeof parsed === "object" && parsed.address) {
+        const item: SavedAddress = {
+          id: `addr-${Date.now()}`,
+          contactName: parsed.contactName || localStorage.getItem("loggedInUser") || "User",
+          contactPhone: parsed.contactPhone || "",
+          address: parsed.address || "",
+          type: parsed.type || "Home",
+          house: parsed.house || "",
+          floor: parsed.floor || "",
+          road: parsed.road || "",
+          createdAt: Date.now(),
+        };
+
+        localStorage.setItem("zee-grill-saved-addresses", JSON.stringify([item]));
+        return [item];
+      }
+    }
+  } catch {
+    return [];
+  }
+
+  return [];
+};
+
 export default function SavedAddressesPage() {
-  const [userName, setUserName] = useState("");
-  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
+  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>(getInitialSavedAddresses);
 
   // Form states
-  const [contactName, setContactName] = useState("");
+  const [contactName, setContactName] = useState(() => {
+    if (typeof window === "undefined") return "";
+    return localStorage.getItem("loggedInUser") || "";
+  });
   const [contactPhone, setContactPhone] = useState("");
   const [address, setAddress] = useState("");
   const [type, setType] = useState("Home");
@@ -36,52 +77,6 @@ export default function SavedAddressesPage() {
     type: "success" | "error";
     message: string;
   } | null>(null);
-
-  // Load saved addresses and user info
-  useEffect(() => {
-    const savedUser = localStorage.getItem("loggedInUser");
-    if (savedUser) {
-      setUserName(savedUser);
-      setContactName(savedUser);
-    }
-
-    try {
-      const stored = localStorage.getItem("zee-grill-saved-addresses");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed)) {
-          setSavedAddresses(parsed);
-          return;
-        }
-      }
-
-      // Check legacy single address if no list exists yet
-      const legacy = localStorage.getItem("savedAddress");
-      if (legacy) {
-        const parsed = JSON.parse(legacy);
-        if (parsed && typeof parsed === "object" && parsed.address) {
-          const item: SavedAddress = {
-            id: `addr-${Date.now()}`,
-            contactName: parsed.contactName || savedUser || "User",
-            contactPhone: parsed.contactPhone || "",
-            address: parsed.address || "",
-            type: parsed.type || "Home",
-            house: parsed.house || "",
-            floor: parsed.floor || "",
-            road: parsed.road || "",
-            createdAt: Date.now(),
-          };
-          setSavedAddresses([item]);
-          localStorage.setItem(
-            "zee-grill-saved-addresses",
-            JSON.stringify([item])
-          );
-        }
-      }
-    } catch {
-      setSavedAddresses([]);
-    }
-  }, []);
 
   // Save new address
   const handleSaveAddress = () => {
@@ -103,7 +98,7 @@ export default function SavedAddressesPage() {
     }
 
     const normalizedPhone = contactPhone.replace(/[\s()-]/g, "").trim();
-    const isValidUKPhone = /^(?:\+44|0)(?:7\d{9}|1\d{8,9}|2\d{8,9})$/.test(normalizedPhone);
+    const isValidUKPhone = /^\+447\d{9}$/.test(normalizedPhone);
     if (!isValidUKPhone) {
       setFeedback({
         type: "error",
@@ -206,34 +201,39 @@ export default function SavedAddressesPage() {
         className="
           mx-auto
           w-full
-          max-w-[1150px]
+          max-w-[850px]
           px-5
           pb-14
-          pt-8
+          pt-5
           sm:px-8
-          sm:pt-10
+          sm:pt-6
           md:px-10
           lg:px-0
         "
       >
         {/* BACK */}
-        <Link
-          href="/"
-          className="
-            mb-6
-            inline-flex
-            items-center
-            gap-2
-            text-[11px]
-            font-medium
-            text-[#777]
-            transition-colors
-            hover:text-[#ff542d]
-          "
-        >
-          <span className="text-[17px]">‹</span>
-          Back to Home
-        </Link>
+        <div className="mb-5">
+          <Link
+            href="/account"
+            className="
+              inline-flex
+              items-center
+              gap-2
+              text-[12px]
+              font-semibold
+              text-[#666]
+              transition-colors
+              hover:text-[#ff542d]
+              sm:text-[13px]
+            "
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="19" y1="12" x2="5" y2="12" />
+              <polyline points="12 19 5 12 12 5" />
+            </svg>
+            <span>Back to Account</span>
+          </Link>
+        </div>
 
         {/* PAGE HEADING */}
         <div className="mb-8">
@@ -524,8 +524,18 @@ export default function SavedAddressesPage() {
             <input
               type="tel"
               value={contactPhone}
-              onChange={(e) => setContactPhone(e.target.value)}
-              placeholder="Enter contact phone"
+              onChange={(e) => {
+                let val = e.target.value.replace(/[^0-9+]/g, "");
+                if (val && !val.startsWith("+")) val = "+" + val;
+                if (val.startsWith("+") && !val.startsWith("+447") && val.length > 1) {
+                  val = "+447" + val.replace(/^\+/, "").replace(/^447/, "");
+                }
+                if (!val.startsWith("+447") && val !== "" && val !== "+" && val !== "+4" && val !== "+44") {
+                  val = "+447" + val.replace(/^\+4{0,2}7?/, "");
+                }
+                setContactPhone(val);
+              }}
+              placeholder="+447XXXXXXXXX"
               className="
                 mt-1
                 w-full

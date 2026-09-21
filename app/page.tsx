@@ -13,7 +13,6 @@ import Footer from "@/components/home/Footer";
 import ScrollToTop from "@/components/home/ScrollToTop";
 import OpeningPopup from "@/components/home/OpeningPopup";
 import AuthModal from "@/components/home/AuthModal";
-import CartDrawer from "@/components/cart/CartDrawer";
 
 export default function Home() {
   const [selectedCategory, setSelectedCategory] =
@@ -53,9 +52,6 @@ export default function Home() {
 
       {/* NAVBAR */}
       <Navbar />
-
-      {/* CART DRAWER */}
-      <CartDrawer />
 
       {/* HERO */}
       <HeroSection />

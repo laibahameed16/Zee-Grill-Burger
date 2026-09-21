@@ -51,3 +51,27 @@ body {
     transform: scaleX(1);
   }
 }
+
+/* ============================================
+   THEMED DATE PICKER
+   Accent color follows the brand orange/red
+============================================ */
+input[type="date"] {
+  accent-color: #ff542d;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Style the date display text */
+input[type="date"]::-webkit-datetime-edit-year-field:focus,
+input[type="date"]::-webkit-datetime-edit-month-field:focus,
+input[type="date"]::-webkit-datetime-edit-day-field:focus {
+  background: #ff542d;
+  color: #fff;
+  border-radius: 3px;
+}

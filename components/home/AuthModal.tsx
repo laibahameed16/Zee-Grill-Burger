@@ -330,6 +330,12 @@ export default function AuthModal() {
       return;
     }
 
+    const normalizedRegPhone = regPhone.replace(/[\s()-]/g, "").trim();
+    if (!/^\+447\d{9}$/.test(normalizedRegPhone)) {
+      setRegError("Phone number must start with +447 (UK mobile number required).");
+      return;
+    }
+
     if (!regEmail.trim() || !regEmail.includes("@")) {
       setRegError("A valid email address is required.");
       return;

@@ -69,13 +69,13 @@ export default function AccountPage() {
 
       <Navbar/>
 
-      <div className="mx-auto w-full max-w-[1150px] px-5 pb-12 pt-8 sm:px-8 md:px-10 lg:px-0 sm:pt-10">
+      <div className="mx-auto w-full max-w-[850px] px-5 pb-12 pt-5 sm:px-8 sm:pt-6 md:px-10 lg:px-0">
 
         {/* BACK BUTTON */}
+        <div className="mb-5">
         <Link
           href="/"
           className="
-            mb-6
             inline-flex
             items-center
             gap-2
@@ -93,6 +93,7 @@ export default function AccountPage() {
           </svg>
           <span>Back to Home</span>
         </Link>
+        </div>
 
         <div className="mb-7">
 

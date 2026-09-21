@@ -4,6 +4,7 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import ToastContainer from "@/components/common/ToastContainer";
 import Preloader from "@/components/Preloader";
+import CartDrawer from "@/components/cart/CartDrawer";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -26,6 +27,7 @@ export default function RootLayout({
       <body className={`${poppins.variable} antialiased`}>
         <Preloader />
         <ToastContainer />
+        <CartDrawer />
         {children}
       </body>
     </html>

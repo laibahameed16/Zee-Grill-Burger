@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -24,7 +23,6 @@ export default function HeroSection() {
   return (
     <section className="relative w-full overflow-hidden bg-[#f7f7f7]">
       <div className="relative w-full overflow-hidden">
-
         {/* Carousel Track */}
         <div
           className="flex w-full transition-transform duration-1000 ease-in-out"
@@ -44,31 +42,27 @@ export default function HeroSection() {
                 items-center
                 justify-center
                 overflow-hidden
+
+                h-[150px]
+                min-[400px]:h-[165px]
+                min-[480px]:h-[180px]
+                sm:h-[200px]
+                md:h-[180px]
+                lg:h-[320px]
+                xl:h-[280px]
+                2xl:h-[300px]
               "
             >
               <img
                 src={image}
                 alt={`Porto Piri Piri ${index + 1}`}
+                draggable={false}
                 className="
                   block
+                  h-full
                   w-full
-                  h-auto
-                  object-contain
-
-                  sm:h-[300px]
-                  sm:object-cover
-
-                  md:h-[360px]
-                  md:object-cover
-
-                  lg:h-[350px]
-                  lg:object-cover
-
-                  xl:h-[480px]
-                  xl:object-cover
-
-                  2xl:h-[540px]
-                  2xl:object-cover
+                  object-cover
+                  object-center
                 "
               />
             </div>
@@ -79,7 +73,7 @@ export default function HeroSection() {
         <div
           className="
             absolute
-            bottom-3
+            bottom-2
             left-1/2
             z-10
             flex
@@ -87,7 +81,9 @@ export default function HeroSection() {
             items-center
             gap-2
 
-            sm:bottom-4
+            min-[400px]:bottom-2
+            sm:bottom-3
+            md:bottom-4
           "
         >
           {images.map((_, index) => (
@@ -96,11 +92,15 @@ export default function HeroSection() {
               type="button"
               onClick={() => setCurrentSlide(index)}
               aria-label={`Go to slide ${index + 1}`}
+              aria-current={
+                index === currentSlide ? "true" : undefined
+              }
               className={`
                 h-2
                 rounded-full
                 transition-all
                 duration-500
+                focus:outline-none
 
                 ${
                   index === currentSlide
