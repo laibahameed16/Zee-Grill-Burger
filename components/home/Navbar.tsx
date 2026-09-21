@@ -320,7 +320,7 @@ export default function Navbar() {
     group
     relative
     whitespace-nowrap
-    text-[12px]
+    text-[14px]
     font-normal
     transition-colors
     duration-200
