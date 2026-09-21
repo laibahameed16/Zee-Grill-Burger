@@ -39,7 +39,7 @@ export default function DeleteAccountPage() {
     <main className="min-h-screen bg-[#f7f6f5] text-[#292929]">
       <Navbar/>
 
-      <div className="mx-auto w-full max-w-[650px] px-5 pb-12 pt-8 sm:px-6 sm:pt-10">
+      <div className="mx-auto w-full max-w-[650px] px-5 pb-12 pt-8 sm:px-8 sm:pt-10 md:px-10 lg:px-0">
         <div className="mb-7">
           <p className="text-[10px] font-bold uppercase tracking-[2px] text-[#ff542d] sm:text-[11px]">ACCOUNT</p>
           <h1 className="mt-2 text-[30px] font-extrabold leading-tight text-[#ef4444] sm:text-[38px]">Delete Account</h1>

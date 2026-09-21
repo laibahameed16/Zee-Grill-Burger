@@ -1,6 +1,6 @@
 export default function ContactSection() {
   return (
-    <section id="contact" className="w-full bg-[#f7f7f7] px-5 py-10 sm:px-8 sm:py-12 md:px-10 md:py-14 lg:px-12 lg:py-16 scroll-mt-[76px]">
+    <section id="contact" className="w-full bg-[#f7f7f7] px-5 py-10 sm:px-8 sm:py-12 md:px-10 md:py-14 lg:px-0 lg:py-16 scroll-mt-[76px]">
       <div
         className="
           mx-auto
@@ -59,14 +59,14 @@ export default function ContactSection() {
           <div className="flex items-start gap-5">
             <span
               className="
-                w-[58px]
+                w-[65px]
                 shrink-0
                 pt-0.5
-                text-[9px]
+                text-[11px]
                 font-semibold
                 tracking-[0.5px]
                 text-[#ff542d]
-                sm:text-[10px]
+                sm:text-[12px]
               "
             >
               ADDRESS
@@ -74,11 +74,11 @@ export default function ContactSection() {
 
             <p
               className="
-                text-[10px]
+                text-[13px]
                 leading-[1.6]
                 text-[#292929]
-                sm:text-[11px]
-                md:text-[12px]
+                sm:text-[14px]
+                md:text-[15px]
               "
             >
               49 Kilmarnock Road, Shawlands, Glasgow G41 3YN
@@ -89,14 +89,14 @@ export default function ContactSection() {
           <div className="flex items-start gap-5">
             <span
               className="
-                w-[58px]
+                w-[65px]
                 shrink-0
                 pt-0.5
-                text-[9px]
+                text-[11px]
                 font-semibold
                 tracking-[0.5px]
                 text-[#ff542d]
-                sm:text-[10px]
+                sm:text-[12px]
               "
             >
               PHONE
@@ -104,11 +104,11 @@ export default function ContactSection() {
 
             <p
               className="
-                text-[10px]
+                text-[13px]
                 leading-[1.6]
                 text-[#292929]
-                sm:text-[11px]
-                md:text-[12px]
+                sm:text-[14px]
+                md:text-[15px]
               "
             >
               +441747413273
@@ -119,14 +119,14 @@ export default function ContactSection() {
           <div className="flex items-start gap-5">
             <span
               className="
-                w-[58px]
+                w-[65px]
                 shrink-0
                 pt-0.5
-                text-[9px]
+                text-[11px]
                 font-semibold
                 tracking-[0.5px]
                 text-[#ff542d]
-                sm:text-[10px]
+                sm:text-[12px]
               "
             >
               EMAIL
@@ -135,11 +135,11 @@ export default function ContactSection() {
             <p
               className="
                 break-all
-                text-[10px]
+                text-[13px]
                 leading-[1.6]
                 text-[#292929]
-                sm:text-[11px]
-                md:text-[12px]
+                sm:text-[14px]
+                md:text-[15px]
               "
             >
               info@portopiripiri.co.uk

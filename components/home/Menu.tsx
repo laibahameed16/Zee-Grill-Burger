@@ -111,9 +111,9 @@ export default function Menu() {
       {/* =====================================================
           SEARCH BAR
       ====================================================== */}
-      <div className="w-full bg-[#f7f7f7] px-4 pt-5 pb-4 sm:px-6 md:px-10 lg:px-14 xl:px-16">
+      <div className="w-full bg-[#f7f7f7] px-5 pt-5 pb-4 sm:px-8 md:px-10 lg:px-0">
         <div className="mx-auto w-full max-w-[1150px]">
-          <div className="relative w-[200px] sm:w-[240px] md:w-[260px]">
+          <div className="relative w-full">
             {/* SVG SEARCH ICON */}
             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#aaa]">
               <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
@@ -182,7 +182,7 @@ export default function Menu() {
           );
         });
         return !anyMatch ? (
-          <div className="w-full bg-[#f7f7f7] px-4 py-16 text-center sm:px-6 md:px-10 lg:px-14 xl:px-16">
+          <div className="w-full bg-[#f7f7f7] px-5 py-16 text-center sm:px-8 md:px-10 lg:px-0 mx-auto max-w-[1150px]">
             <p className="text-[28px]">🍔</p>
             <p className="mt-2 text-[15px] font-semibold text-[#292929]">
               No items found

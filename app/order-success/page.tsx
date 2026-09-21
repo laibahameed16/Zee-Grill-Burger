@@ -75,7 +75,7 @@ export default function OrderSuccessPage() {
       </div>
 
       {/* SUCCESS CONTENT */}
-      <div className="flex min-h-[calc(100vh-88px)] w-full items-start justify-center px-4 py-8 sm:px-6 sm:py-10">
+      <div className="mx-auto flex min-h-[calc(100vh-88px)] w-full max-w-[1150px] items-start justify-center px-5 py-8 sm:px-8 sm:py-10 md:px-10 lg:px-0">
         <section
           className="
             w-full max-w-[440px] rounded-[12px] bg-white

@@ -364,14 +364,15 @@ export default function ConfirmationPage() {
           flex
           min-h-[calc(100vh-108px)]
           w-full
-          max-w-[1450px]
+          max-w-[1150px]
           items-start
           justify-center
-          px-4
+          px-5
           py-8
-          sm:px-6
+          sm:px-8
           sm:py-10
-          lg:px-8
+          md:px-10
+          lg:px-0
           lg:py-12
         "
       >

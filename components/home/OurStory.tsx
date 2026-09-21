@@ -1,6 +1,6 @@
 export default function OurStory() {
   return (
-    <section id="our-story" className="w-full bg-[#f7f7f7] px-5 py-10 sm:px-8 sm:py-12 md:px-10 md:py-14 lg:px-12 lg:py-16">
+    <section id="our-story" className="w-full bg-[#f7f7f7] px-5 py-10 sm:px-8 sm:py-12 md:px-10 md:py-14 lg:px-0 lg:py-16">
       <div
         className="
           mx-auto

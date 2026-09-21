@@ -262,10 +262,10 @@ export default function CartDrawer() {
         className={`
           fixed
           right-0
-          top-[74px]
+          top-0
           z-[9999]
           flex
-          h-[calc(100dvh-74px)]
+          h-[100dvh]
           w-full
           flex-col
           overflow-y-auto
@@ -279,8 +279,8 @@ export default function CartDrawer() {
           ease-out
           rounded-l-[22px]
 
-          sm:top-[74px]
-          sm:h-[calc(100dvh-74px)]
+          sm:top-0
+          sm:h-[100dvh]
           sm:w-[360px]
 
           md:w-[380px]

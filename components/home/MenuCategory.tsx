@@ -412,23 +412,19 @@ export default function MenuCategory({
                   cursor-pointer
                   select-none
 
-                  h-[36px]
-                  px-1.5
-                  text-[10px]
-
-                  xs:h-[38px]
-                  xs:px-2
-                  xs:text-[11px]
-
-                  sm:h-[38px]
-                  sm:px-2.5
-                  sm:text-[11.5px]
-
-                  md:h-[40px]
-                  md:px-3
-                  md:text-[12.5px]
-
-                  lg:text-[13px]
+                  h-[40px]
+                  px-2
+                  text-[12px]
+                  xs:h-[42px]
+                  xs:px-3
+                  xs:text-[13px]
+                  sm:h-[42px]
+                  sm:px-3.5
+                  sm:text-[14px]
+                  md:h-[44px]
+                  md:px-4
+                  md:text-[15px]
+                  lg:text-[16px]
 
                   ${
                     isActive

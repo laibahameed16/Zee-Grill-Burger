@@ -166,65 +166,34 @@ export default function CartPage() {
       {/* =========================
           HEADER
       ========================== */}
-      <header
-        className="
-          flex
-          h-[72px]
-          items-center
-          justify-between
-          bg-[#292929]
-          px-5
-          text-white
-          sm:px-8
-          lg:px-10
-        "
-      >
-        {/* LOGO */}
-        <button
-          type="button"
-          onClick={() => {
-            window.location.href = "/";
-          }}
-          className="
-            flex
-            h-[38px]
-            w-auto
-            items-center
-            sm:h-[44px]
-          "
-        >
-          <img
-            src="/images/navbarimages/logo.png"
-            alt="Porto Piri Piri"
-            className="
-              h-full
-              w-auto
-              object-contain
-            "
-          />
-        </button>
+      <header className="h-[72px] w-full bg-[#292929]">
+        <div className="mx-auto flex h-full w-full max-w-[1150px] items-center justify-between px-5 sm:px-8 md:px-10 lg:px-0">
+          {/* LOGO */}
+          <button
+            type="button"
+            onClick={() => {
+              window.location.href = "/";
+            }}
+            className="flex h-[38px] w-auto items-center sm:h-[44px]"
+          >
+            <img
+              src="/images/navbarimages/logo.png"
+              alt="Porto Piri Piri"
+              className="h-full w-auto object-contain"
+            />
+          </button>
 
-        {/* BACK */}
-        <button
-          type="button"
-          onClick={() => {
-            window.location.href = "/";
-          }}
-          className="
-            rounded-full
-            border
-            border-[#555]
-            px-4
-            py-2
-            text-[9px]
-            text-white
-            transition-colors
-            hover:border-[#ff542d]
-            hover:text-[#ff542d]
-          "
-        >
-          Back to Menu
-        </button>
+          {/* BACK */}
+          <button
+            type="button"
+            onClick={() => {
+              window.location.href = "/";
+            }}
+            className="rounded-full border border-[#555] px-4 py-2 text-[9px] text-white transition-colors hover:border-[#ff542d] hover:text-[#ff542d]"
+          >
+            Back to Menu
+          </button>
+        </div>
       </header>
 
       {/* =========================
@@ -234,10 +203,12 @@ export default function CartPage() {
         className="
           mx-auto
           w-full
-          max-w-[1000px]
+          max-w-[1150px]
           px-5
           py-8
           sm:px-8
+          md:px-10
+          lg:px-0
           md:py-10
         "
       >

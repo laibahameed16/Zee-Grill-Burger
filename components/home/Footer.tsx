@@ -18,24 +18,24 @@ export default function Footer() {
 
           {/* QUICK LINKS */}
           <div>
-            <h3 className="text-[10px] font-medium tracking-[0.3px] text-[#ff542d] sm:text-[11px]">
+            <h3 className="text-[13px] font-medium tracking-[0.3px] text-[#ff542d] sm:text-[14px]">
               QUICK LINKS
             </h3>
 
             <div className="mt-5 flex flex-col gap-4">
-              <a href="#" className="text-[9px] text-black transition-colors hover:text-[#ff542d] sm:text-[10px]">
+              <a href="#" className="text-[12px] text-black transition-colors hover:text-[#ff542d] sm:text-[13px]">
                 Home
               </a>
 
-              <a href="#" className="text-[9px] text-black transition-colors hover:text-[#ff542d] sm:text-[10px]">
+              <a href="#" className="text-[12px] text-black transition-colors hover:text-[#ff542d] sm:text-[13px]">
                 Our Story
               </a>
 
-              <a href="#" className="text-[9px] text-black transition-colors hover:text-[#ff542d] sm:text-[10px]">
+              <a href="#" className="text-[12px] text-black transition-colors hover:text-[#ff542d] sm:text-[13px]">
                 Menu
               </a>
 
-              <a href="#" className="text-[9px] text-black transition-colors hover:text-[#ff542d] sm:text-[10px]">
+              <a href="#" className="text-[12px] text-black transition-colors hover:text-[#ff542d] sm:text-[13px]">
                 Contact
               </a>
             </div>
@@ -43,20 +43,20 @@ export default function Footer() {
 
           {/* CONTACT */}
           <div>
-            <h3 className="text-[10px] font-medium tracking-[0.3px] text-[#ff542d] sm:text-[11px]">
+            <h3 className="text-[13px] font-medium tracking-[0.3px] text-[#ff542d] sm:text-[14px]">
               CONTACT
             </h3>
 
             <div className="mt-5 flex flex-col gap-4">
-              <p className="text-[9px] text-black transition-colors sm:text-[10px]">
+              <p className="text-[12px] text-black transition-colors sm:text-[13px]">
                 +441747413273
               </p>
 
-              <p className="text-[9px] text-black transition-colors sm:text-[10px]">
+              <p className="text-[12px] text-black transition-colors sm:text-[13px]">
                 info@portopiripiri.co.uk
               </p>
 
-              <p className="max-w-[150px] text-[9px] leading-[1.7] text-black transition-colors sm:text-[10px]">
+              <p className="max-w-[150px] text-[12px] leading-[1.7] text-black transition-colors sm:text-[13px]">
                 49 Kilmarnock Road,
                 <br />
                 Shawlands, Glasgow
@@ -68,7 +68,7 @@ export default function Footer() {
 
           {/* SOCIAL MEDIA */}
           <div>
-            <h3 className="text-[10px] font-medium tracking-[0.3px] text-[#ff542d] sm:text-[11px]">
+            <h3 className="text-[13px] font-medium tracking-[0.3px] text-[#ff542d] sm:text-[14px]">
               FOLLOW US ON
             </h3>
 
@@ -150,7 +150,7 @@ export default function Footer() {
       {/* BOTTOM LINE */}
       <div className="border-t border-[#a5a3a3]">
         <div className="mx-auto w-full max-w-[1150px] px-5 py-5 sm:px-8 md:px-10 lg:px-0">
-          <p className="text-[8px] text-[#626262] sm:text-[9px]">
+          <p className="text-[11px] text-[#626262] sm:text-[12px]">
             © Powered by Cravedash. All rights reserved.
           </p>
         </div>

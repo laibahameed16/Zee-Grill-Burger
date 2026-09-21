@@ -249,52 +249,52 @@ export default function MyOrdersPage() {
       {/* =========================================================
           PAGE CONTENT
       ========================================================= */}
-      <div className="mx-auto w-full max-w-[1120px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+      <div className="mx-auto w-full max-w-[1150px] px-5 pb-8 pt-6 sm:px-8 sm:pb-10 sm:pt-8 md:px-10 lg:px-0">
 
-        {/* =======================================================
-            BACK TO MY ACCOUNT
-        ======================================================= */}
-        <Link
-  href="/account"
-  className="
-    mb-5 flex w-fit items-center gap-2
-    text-[12px] font-medium text-[#555]
-    transition hover:text-[#ff542d]
-    sm:mb-6 sm:text-[13px]
-  "
->
-  <span
-    className="
-      flex h-[16px] w-[16px]
-      items-center justify-center
-      text-[18px] leading-none
-      font-light
-    "
-  >
-    ‹
-  </span>
+        <header className="mx-auto mb-5 w-full max-w-[980px] sm:mb-6">
+          {/* =======================================================
+              BACK TO MY ACCOUNT
+          ======================================================= */}
+          <Link
+            href="/account"
+            className="
+              mb-5 flex w-fit items-center gap-2
+              text-[12px] font-medium text-[#555]
+              transition hover:text-[#ff542d]
+              sm:mb-6 sm:text-[13px]
+            "
+          >
+            <span
+              className="
+                flex h-[16px] w-[16px]
+                items-center justify-center
+                text-[18px] leading-none
+                font-light
+              "
+            >
+              ‹
+            </span>
 
-  <span>Back</span>
-</Link>
+            <span>Back</span>
+          </Link>
 
-        {/* =======================================================
-            PAGE HEADING
-        ======================================================= */}
-        <div className="mb-6">
+          {/* =======================================================
+              PAGE HEADING
+          ======================================================= */}
+          <div className="mb-0">
+            <p className="text-[11px] font-semibold tracking-[0.18em] text-[#ff542d] sm:text-[12px]">
+              ACCOUNT
+            </p>
 
-          <p className="text-[11px] font-semibold tracking-[0.18em] text-[#ff542d] sm:text-[12px]">
-            ACCOUNT
-          </p>
+            <h1 className="mt-1.5 text-[28px] font-bold leading-tight text-[#252a35] sm:text-[34px]">
+              My Orders
+            </h1>
 
-          <h1 className="mt-1.5 text-[28px] font-bold leading-tight text-[#252a35] sm:text-[34px]">
-            My Orders
-          </h1>
-
-          <p className="mt-1.5 text-[12px] text-[#8a8f9a] sm:text-[13px]">
-            Track and manage all your previous orders
-          </p>
-
-        </div>
+            <p className="mt-1.5 text-[12px] text-[#8a8f9a] sm:text-[13px]">
+              Track and manage all your previous orders
+            </p>
+          </div>
+        </header>
 
         {/* =======================================================
             FILTERS

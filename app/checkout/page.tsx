@@ -989,11 +989,12 @@ export default function CheckoutPage() {
         className="
           mx-auto
           w-full
-          max-w-[1200px]
-          px-4
+          max-w-[1150px]
+          px-5
           pt-7
-          sm:px-5
-          lg:px-6
+          sm:px-8
+          md:px-10
+          lg:px-0
         "
       >
         <p
@@ -1045,17 +1046,18 @@ export default function CheckoutPage() {
           mx-auto
           flex
           w-full
-          max-w-[1200px]
+          max-w-[1150px]
           flex-col
           gap-4
-          px-4
+          px-5
           pb-10
           pt-6
-          sm:px-5
+          sm:px-8
+          md:px-10
+          lg:px-0
           lg:flex-row
           lg:items-start
           lg:gap-4
-          lg:px-6
           xl:gap-5
         "
       >
@@ -1107,24 +1109,7 @@ export default function CheckoutPage() {
                 Your Information
               </h2>
 
-              <button
-                type="button"
-                className="
-                  rounded-full
-                  border
-                  border-[#ff542d]
-                  px-4
-                  py-2
-                  text-[11px]
-                  font-medium
-                  text-[#ff542d]
-                  transition-all
-                  hover:bg-[#ff542d]
-                  hover:text-white
-                "
-              >
-                Update
-              </button>
+              
 
             </div>
 

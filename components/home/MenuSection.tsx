@@ -286,12 +286,11 @@ export default function MenuSection({
           w-full
           scroll-mt-[130px]
           bg-[#f7f7f7]
-          px-4
+          px-5
           py-7
-          sm:px-6
+          sm:px-8
           md:px-10
-          lg:px-14
-          xl:px-16
+          lg:px-0
         "
       >
         <div className="mx-auto w-full max-w-[1150px]">
@@ -451,11 +450,11 @@ export default function MenuSection({
                       className="
                         mt-1
                         line-clamp-2
-                        text-[7px]
-                        leading-[10px]
+                        text-[10px]
+                        leading-[14px]
                         text-[#777]
-                        sm:text-[8px]
-                        sm:leading-[11px]
+                        sm:text-[11px]
+                        sm:leading-[15px]
                       "
                     >
                       {item.description}
@@ -474,9 +473,10 @@ export default function MenuSection({
                       <span
                         className="
                           whitespace-nowrap
-                          text-[9px]
+                          text-[11px]
+                          font-semibold
                           text-[#333]
-                          sm:text-[10px]
+                          sm:text-[12px]
                         "
                       >
                         from {item.price}
@@ -491,7 +491,7 @@ export default function MenuSection({
                           bg-[#ff542d]
                           px-5
                           py-[7px]
-                          text-[9px]
+                          text-[11px]
                           font-semibold
                           text-white
                           transition-all
@@ -500,9 +500,9 @@ export default function MenuSection({
                           hover:bg-[#e94724]
                           sm:px-6
                           sm:py-[8px]
-                          sm:text-[10px]
+                          sm:text-[12px]
                           md:px-7
-                          md:text-[11px]
+                          md:text-[13px]
                         "
                       >
                         Choose

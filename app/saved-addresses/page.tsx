@@ -206,13 +206,14 @@ export default function SavedAddressesPage() {
         className="
           mx-auto
           w-full
-          max-w-[1100px]
+          max-w-[1150px]
           px-5
           pb-14
           pt-8
           sm:px-8
           sm:pt-10
-          lg:px-10
+          md:px-10
+          lg:px-0
         "
       >
         {/* BACK */}

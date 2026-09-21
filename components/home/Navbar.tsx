@@ -393,15 +393,17 @@ export default function Navbar() {
       >
         <div
           className="
+            mx-auto
             relative
             flex
             h-full
             w-full
+            max-w-[1150px]
             items-center
             px-5
-            sm:px-6
-            md:px-8
-            lg:px-10
+            sm:px-8
+            md:px-10
+            lg:px-0
           "
         >
           {/* =================================================
@@ -413,17 +415,17 @@ export default function Navbar() {
             onClick={() => scrollToSection("home")}
             className="
               absolute
-              left-4
+              left-5
               top-1/2
               flex
               h-[38px]
               w-auto
               -translate-y-1/2
               items-center
-              sm:left-6
+              sm:left-8
               sm:h-[42px]
-              md:left-8
-              lg:left-10
+              md:left-10
+              lg:left-0
               lg:h-[46px]
             "
           >
@@ -462,7 +464,7 @@ export default function Navbar() {
               onClick={() => scrollToSection("home")}
               className={navLinkClass("home")}
             >
-              HOME
+              Home
 
               <span
                 className={`
@@ -490,7 +492,7 @@ export default function Navbar() {
               onClick={() => scrollToSection("menu")}
               className={navLinkClass("menu")}
             >
-              MENU
+              Menu
 
               <span
                 className={`
@@ -520,7 +522,7 @@ export default function Navbar() {
               }
               className={navLinkClass("our-story")}
             >
-              OUR STORY
+              Our story
 
               <span
                 className={`
@@ -550,7 +552,7 @@ export default function Navbar() {
               }
               className={navLinkClass("contact")}
             >
-              CONTACT
+              Contact
 
               <span
                 className={`
@@ -1078,32 +1080,90 @@ export default function Navbar() {
           </div>
 
           {/* =================================================
-              MOBILE MENU BUTTON
+              MOBILE CART ICON + HAMBURGER (in navbar header)
           ================================================== */}
 
-          <button
-            type="button"
-            aria-label="Open menu"
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="
-              ml-auto
-              flex
-              h-[35px]
-              w-[38px]
-              flex-col
-              items-center
-              justify-center
-              gap-[5px]
-              rounded-md
-              border
-              border-[#555]
-              lg:hidden
-            "
-          >
-            <span className="h-[2px] w-[19px] bg-black" />
-            <span className="h-[2px] w-[19px] bg-black" />
-            <span className="h-[2px] w-[19px] bg-black" />
-          </button>
+          <div className="ml-auto flex items-center gap-2 lg:hidden">
+            {/* MOBILE CART */}
+            <button
+              type="button"
+              aria-label="Shopping bag"
+              onClick={openCart}
+              className="
+                relative
+                flex
+                h-[35px]
+                w-[35px]
+                items-center
+                justify-center
+                rounded-full
+                bg-[#ff542d]
+                transition-transform
+                duration-200
+                hover:scale-105
+                active:scale-95
+              "
+            >
+              <img
+                src="/images/navbarimages/bag.png"
+                alt=""
+                aria-hidden="true"
+                className="
+                  h-[17px]
+                  w-[17px]
+                  object-contain
+                "
+              />
+
+              {userName && cartCount > 0 && (
+                <span
+                  className="
+                    absolute
+                    -right-2
+                    -top-2
+                    flex
+                    min-h-[16px]
+                    min-w-[16px]
+                    items-center
+                    justify-center
+                    rounded-full
+                    bg-white
+                    px-1
+                    text-[8px]
+                    font-extrabold
+                    leading-none
+                    text-[#ff542d]
+                    shadow-sm
+                  "
+                >
+                  {cartCount > 99 ? "99+" : cartCount}
+                </span>
+              )}
+            </button>
+
+            {/* HAMBURGER */}
+            <button
+              type="button"
+              aria-label="Open menu"
+              onClick={() => setMenuOpen(!menuOpen)}
+              className="
+                flex
+                h-[35px]
+                w-[38px]
+                flex-col
+                items-center
+                justify-center
+                gap-[5px]
+                rounded-md
+                border
+                border-[#555]
+              "
+            >
+              <span className="h-[2px] w-[19px] bg-black" />
+              <span className="h-[2px] w-[19px] bg-black" />
+              <span className="h-[2px] w-[19px] bg-black" />
+            </button>
+          </div>
         </div>
 
         {/* =====================================================
@@ -1141,7 +1201,7 @@ export default function Navbar() {
                   border-[#d5d5d5]
                   py-4
                   text-left
-                  text-[12px]
+                  text-[14px]
                   transition-colors
                   duration-200
                   hover:text-[#ff542d]
@@ -1152,7 +1212,7 @@ export default function Navbar() {
                   }
                 `}
               >
-                HOME
+                Home
               </button>
 
               {/* MENU */}
@@ -1167,7 +1227,7 @@ export default function Navbar() {
                   border-[#d5d5d5]
                   py-4
                   text-left
-                  text-[12px]
+                  text-[14px]
                   transition-colors
                   duration-200
                   hover:text-[#ff542d]
@@ -1193,7 +1253,7 @@ export default function Navbar() {
                   border-[#d5d5d5]
                   py-4
                   text-left
-                  text-[12px]
+                  text-[14px]
                   transition-colors
                   duration-200
                   hover:text-[#ff542d]
@@ -1204,7 +1264,7 @@ export default function Navbar() {
                   }
                 `}
               >
-                OUR STORY
+                Our story
               </button>
 
               {/* CONTACT */}
@@ -1219,7 +1279,7 @@ export default function Navbar() {
                   border-[#d5d5d5]
                   py-4
                   text-left
-                  text-[12px]
+                  text-[14px]
                   transition-colors
                   duration-200
                   hover:text-[#ff542d]
@@ -1230,7 +1290,7 @@ export default function Navbar() {
                   }
                 `}
               >
-                CONTACT
+                Contact
               </button>
 
               {/* =================================================

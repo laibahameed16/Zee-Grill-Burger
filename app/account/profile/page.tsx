@@ -130,7 +130,7 @@ export default function ProfilePage() {
     <main className="min-h-screen bg-[#f7f6f5] text-[#292929]">
       <Navbar/>
 
-      <div className="mx-auto w-full max-w-[850px] px-5 pb-12 pt-5 sm:px-6 sm:pt-6">
+      <div className="mx-auto w-full max-w-[850px] px-5 pb-12 pt-5 sm:px-8 sm:pt-6 md:px-10 lg:px-0">
         <div className="mb-5">
           <Link
             href="/account"

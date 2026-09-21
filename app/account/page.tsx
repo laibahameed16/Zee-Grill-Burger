@@ -69,7 +69,30 @@ export default function AccountPage() {
 
       <Navbar/>
 
-      <div className="mx-auto w-full max-w-[850px] px-5 pb-12 pt-8 sm:px-6 sm:pt-10">
+      <div className="mx-auto w-full max-w-[1150px] px-5 pb-12 pt-8 sm:px-8 md:px-10 lg:px-0 sm:pt-10">
+
+        {/* BACK BUTTON */}
+        <Link
+          href="/"
+          className="
+            mb-6
+            inline-flex
+            items-center
+            gap-2
+            text-[12px]
+            font-semibold
+            text-[#666]
+            transition-colors
+            hover:text-[#ff542d]
+            sm:text-[13px]
+          "
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12" />
+            <polyline points="12 19 5 12 12 5" />
+          </svg>
+          <span>Back to Home</span>
+        </Link>
 
         <div className="mb-7">
 

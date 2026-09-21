@@ -1227,6 +1227,42 @@ export default function AuthModal() {
             <span>Register with Google</span>
           </button>
 
+          {/* APPLE REGISTER */}
+          <button
+            type="button"
+            onClick={handleAppleClick}
+            className="
+              mt-2.5
+              flex
+              h-[40px]
+              w-full
+              items-center
+              justify-center
+              gap-2
+              rounded-full
+              border
+              border-[#dfe2e7]
+              bg-white
+              px-3
+              text-[11px]
+              font-semibold
+              text-[#202938]
+              transition-colors
+              hover:bg-[#f8f8f8]
+              cursor-pointer
+            "
+          >
+            <svg
+              className="h-[15px] w-[15px]"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="currentColor"
+            >
+              <path d="M17.05 13.97c-.01-2.91 2.37-4.3 2.48-4.36-1.35-1.98-3.44-2.25-4.18-2.3-1.78-.18-3.48 1.05-4.4 1.05-.91 0-2.31-1.02-3.8-1-1.95.03-3.76 1.14-4.75 2.87-2.03 3.51-.51 8.7 1.47 11.56.97 1.4 2.1 2.96 3.63 2.9 1.47-.05 2.03-.95 3.8-.95 1.76 0 2.27.95 3.82.92 1.57-.02 2.56-1.42 3.52-2.83 1.11-1.63 1.57-3.2 1.59-3.28-.03-.01-2.97-1.14-2.98-4.33zM14.93 6.94c.81-1 1.35-2.38 1.2-3.77-1.19.05-2.65.8-3.49 1.8-.75.87-1.39 2.29-1.21 3.65 1.33.1 2.68-.68 3.5-1.68z" />
+            </svg>
+            <span>Continue with Apple</span>
+          </button>
+
           {/* LOGIN */}
           <p className="mt-3 text-center text-[11px] text-[#7c8490]">
             Have an account?{" "}
