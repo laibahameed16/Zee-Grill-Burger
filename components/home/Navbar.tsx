@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -134,7 +133,10 @@ export default function Navbar() {
       "site-notification",
       handleNotification
     );
-    window.addEventListener("notifications-updated", updateUnreadCount);
+    window.addEventListener(
+      "notifications-updated",
+      updateUnreadCount
+    );
     window.addEventListener("storage", updateUnreadCount);
 
     return () => {
@@ -168,7 +170,10 @@ export default function Navbar() {
         handleNotification
       );
 
-      window.removeEventListener("notifications-updated", updateUnreadCount);
+      window.removeEventListener(
+        "notifications-updated",
+        updateUnreadCount
+      );
     };
   }, []);
 
@@ -280,13 +285,10 @@ export default function Navbar() {
   const handleLocationSelect = (location: Location) => {
     setSelectedLocation(location);
 
-    // Optional: save selected location
     localStorage.setItem("selectedLocation", location);
 
-    // Close mobile menu
     closeMenu();
 
-    // Optional notification
     window.dispatchEvent(
       new CustomEvent("site-notification", {
         detail: {
@@ -614,8 +616,6 @@ export default function Navbar() {
               >
                 <span>{selectedLocation}</span>
 
-                {/* NEW CHEVRON ICON */}
-
                 <ChevronDown
                   size={15}
                   strokeWidth={2}
@@ -940,9 +940,12 @@ export default function Navbar() {
                       "
                     >
                       <span>Notifications</span>
+
                       {unreadNotifCount > 0 && (
                         <span className="flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-[#ff542d] px-1 text-[8px] font-extrabold text-white">
-                          {unreadNotifCount > 99 ? "99+" : unreadNotifCount}
+                          {unreadNotifCount > 99
+                            ? "99+"
+                            : unreadNotifCount}
                         </span>
                       )}
                     </Link>
@@ -1085,6 +1088,7 @@ export default function Navbar() {
 
           <div className="ml-auto flex items-center gap-2 lg:hidden">
             {/* MOBILE CART */}
+
             <button
               type="button"
               aria-label="Shopping bag"
@@ -1142,6 +1146,7 @@ export default function Navbar() {
             </button>
 
             {/* HAMBURGER */}
+
             <button
               type="button"
               aria-label="Open menu"
@@ -1494,9 +1499,12 @@ export default function Navbar() {
                     "
                   >
                     <span>Notifications</span>
+
                     {unreadNotifCount > 0 && (
                       <span className="flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-[#ff542d] px-1 text-[8px] font-extrabold text-white">
-                        {unreadNotifCount > 99 ? "99+" : unreadNotifCount}
+                        {unreadNotifCount > 99
+                          ? "99+"
+                          : unreadNotifCount}
                       </span>
                     )}
                   </Link>
@@ -1567,65 +1575,6 @@ export default function Navbar() {
                   Sign In
                 </button>
               )}
-
-              {/* =================================================
-                  MOBILE CART
-              ================================================== */}
-
-              <div className="mt-4 flex items-center gap-2 pb-2">
-                <button
-                  type="button"
-                  onClick={openCart}
-                  aria-label="Shopping bag"
-                  className="
-                    relative
-                    flex
-                    h-[31px]
-                    w-[31px]
-                    items-center
-                    justify-center
-                    rounded-full
-                    bg-[#ff542d]
-                  "
-                >
-                  <img
-                    src="/images/navbarimages/bag.png"
-                    alt=""
-                    aria-hidden="true"
-                    className="
-                      h-[17px]
-                      w-[17px]
-                    "
-                  />
-
-                  {userName && cartCount > 0 && (
-                    <span
-                      className="
-                        absolute
-                        -right-2
-                        -top-2
-                        flex
-                        min-h-[16px]
-                        min-w-[16px]
-                        items-center
-                        justify-center
-                        rounded-full
-                        bg-white
-                        px-1
-                        text-[8px]
-                        font-extrabold
-                        leading-none
-                        text-[#ff542d]
-                        shadow-sm
-                      "
-                    >
-                      {cartCount > 99
-                        ? "99+"
-                        : cartCount}
-                    </span>
-                  )}
-                </button>
-              </div>
             </div>
           </div>
         )}
