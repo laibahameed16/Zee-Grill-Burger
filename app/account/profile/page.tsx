@@ -42,19 +42,18 @@ export default function ProfilePage() {
     }
 
     if (file.size > 4 * 1024 * 1024) {
-      showNotification(
-        "error",
-        "Image size must be less than 4MB."
-      );
+      showNotification("error", "Image size must be less than 4MB.");
       return;
     }
 
     const reader = new FileReader();
+
     reader.onload = () => {
       const result = reader.result as string;
       setPreviewPic(result);
       setProfile((p) => ({ ...p, profilePic: result }));
     };
+
     reader.readAsDataURL(file);
   };
 
@@ -65,12 +64,26 @@ export default function ProfilePage() {
       showNotification("error", "First name is required.");
       return;
     }
+
     if (!profile.lastName.trim()) {
       showNotification("error", "Last name is required.");
       return;
     }
+
     if (!profile.email.trim() || !profile.email.includes("@")) {
       showNotification("error", "A valid email address is required.");
+      return;
+    }
+
+    // UK mobile number validation
+    // Must start with +447 and contain 13 digits in total.
+    const ukPhoneRegex = /^\+447\d{9}$/;
+
+    if (!ukPhoneRegex.test(profile.phone.trim())) {
+      showNotification(
+        "error",
+        "Please enter a valid UK mobile number starting with +447."
+      );
       return;
     }
 
@@ -80,6 +93,7 @@ export default function ProfilePage() {
 
     const finalProfile: UserProfile = {
       ...profile,
+      phone: profile.phone.trim(),
     };
 
     if (newPassword.trim().length > 0) {
@@ -91,16 +105,21 @@ export default function ProfilePage() {
         setIsSaving(false);
         return;
       }
+
       try {
         const usersRaw = localStorage.getItem("zee-grill-registered-users");
+
         if (usersRaw) {
           const users = JSON.parse(usersRaw);
+
           const idx = users.findIndex(
             (u: any) =>
               u.email?.toLowerCase() === profile.email?.toLowerCase()
           );
+
           if (idx !== -1) {
             users[idx].password = newPassword;
+
             localStorage.setItem(
               "zee-grill-registered-users",
               JSON.stringify(users)
@@ -115,7 +134,10 @@ export default function ProfilePage() {
     saveUserProfile(finalProfile);
     setPreviewPic(finalProfile.profilePic || "");
 
-    showNotification("success", "Your profile has been updated successfully!");
+    showNotification(
+      "success",
+      "Your profile has been updated successfully!"
+    );
 
     setNewPassword("");
     setIsSaving(false);
@@ -128,7 +150,7 @@ export default function ProfilePage() {
 
   return (
     <main className="min-h-screen bg-[#f7f6f5] text-[#292929]">
-      <Navbar/>
+      <Navbar />
 
       <div className="mx-auto w-full max-w-[850px] px-5 pb-12 pt-5 sm:px-8 sm:pt-6 md:px-10 lg:px-0">
         <div className="mb-5">
@@ -160,6 +182,7 @@ export default function ProfilePage() {
               <line x1="19" y1="12" x2="5" y2="12" />
               <polyline points="12 19 5 12 12 5" />
             </svg>
+
             <span>Back to Account</span>
           </Link>
         </div>
@@ -254,6 +277,7 @@ export default function ProfilePage() {
                   sm:text-[12px]
                 "
               />
+
               <p className="mt-2 text-[10px] text-[#999] sm:text-[11px]">
                 JPG, PNG or GIF. Max size 4MB.
               </p>
@@ -265,11 +289,15 @@ export default function ProfilePage() {
               <label className="mb-1.5 block text-[11px] font-medium text-[#777] sm:text-[12px]">
                 First name
               </label>
+
               <input
                 type="text"
                 value={profile.firstName}
                 onChange={(e) =>
-                  setProfile((p) => ({ ...p, firstName: e.target.value }))
+                  setProfile((p) => ({
+                    ...p,
+                    firstName: e.target.value,
+                  }))
                 }
                 className="
                   w-full
@@ -296,11 +324,15 @@ export default function ProfilePage() {
               <label className="mb-1.5 block text-[11px] font-medium text-[#777] sm:text-[12px]">
                 Last name
               </label>
+
               <input
                 type="text"
                 value={profile.lastName}
                 onChange={(e) =>
-                  setProfile((p) => ({ ...p, lastName: e.target.value }))
+                  setProfile((p) => ({
+                    ...p,
+                    lastName: e.target.value,
+                  }))
                 }
                 className="
                   w-full
@@ -328,11 +360,15 @@ export default function ProfilePage() {
             <label className="mb-1.5 block text-[11px] font-medium text-[#777] sm:text-[12px]">
               Email
             </label>
+
             <input
               type="email"
               value={profile.email}
               onChange={(e) =>
-                setProfile((p) => ({ ...p, email: e.target.value }))
+                setProfile((p) => ({
+                  ...p,
+                  email: e.target.value,
+                }))
               }
               className="
                 w-full
@@ -359,12 +395,17 @@ export default function ProfilePage() {
             <label className="mb-1.5 block text-[11px] font-medium text-[#777] sm:text-[12px]">
               Phone
             </label>
+
             <input
               type="tel"
               value={profile.phone}
               onChange={(e) =>
-                setProfile((p) => ({ ...p, phone: e.target.value }))
+                setProfile((p) => ({
+                  ...p,
+                  phone: e.target.value,
+                }))
               }
+              placeholder="+447XXXXXXXXX"
               className="
                 w-full
                 rounded-2xl
@@ -384,12 +425,17 @@ export default function ProfilePage() {
                 sm:text-[14px]
               "
             />
+
+            <p className="mt-2 text-[10px] text-[#999] sm:text-[11px]">
+              UK mobile number must start with +447.
+            </p>
           </div>
 
           <div className="mt-4">
             <label className="mb-1.5 block text-[11px] font-medium text-[#777] sm:text-[12px]">
               New password (optional)
             </label>
+
             <input
               type="password"
               value={newPassword}
