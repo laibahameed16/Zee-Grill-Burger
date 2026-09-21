@@ -43,13 +43,16 @@ export default function HeroSection() {
                 justify-center
                 overflow-hidden
 
-                h-[150px]
-                min-[400px]:h-[165px]
-                min-[480px]:h-[180px]
+                h-auto
+                min-h-[150px]
+
+                min-[400px]:min-h-[165px]
+                min-[480px]:min-h-[180px]
+
                 sm:h-[200px]
                 md:h-[180px]
-                lg:h-[320px]
-                xl:h-[280px]
+                lg:h-[280px]
+                xl:h-[360px]
                 2xl:h-[300px]
               "
             >
@@ -59,10 +62,17 @@ export default function HeroSection() {
                 draggable={false}
                 className="
                   block
-                  h-full
                   w-full
-                  object-cover
-                  object-center
+                  select-none
+
+                  /* Mobile: full image visible, no cropping */
+                  h-auto
+                  object-contain
+
+                  /* Tablet/Desktop */
+                  sm:h-full
+                  sm:object-cover
+                  sm:object-center
                 "
               />
             </div>
