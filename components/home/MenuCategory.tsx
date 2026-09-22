@@ -1,30 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { MENU_CATEGORIES } from "@/lib/menu";
 
-const categories = [
-  "Porto Kebabs",
-  "Quesadilla",
-  "Sides",
-  "Drinks",
-  "Burrito",
-  "Platters",
-  "Dips",
-  "Kids Meal",
-  "Rice",
-  "Burgers",
-  "Tandoori Dishes",
-  "Biryani Dishes",
-  "Hoogies",
-  "Bread",
-  "Chips With Starters",
-  "Thrill Of Grill",
-  "Korma Dishes",
-  "Street Bites",
-  "European Dishes",
-  "Wraps",
-  "Special Wings",
-];
+const categories = MENU_CATEGORIES;
 
 type MenuCategoryProps = {
   selectedCategory: string;

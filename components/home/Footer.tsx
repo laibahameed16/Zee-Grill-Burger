@@ -1,3 +1,5 @@
+import { SITE_CONFIG } from "@/lib/siteConfig";
+
 export default function Footer() {
   return (
     <footer id="footer" className="w-full bg-[#eae8e8] text-white">
@@ -11,7 +13,7 @@ export default function Footer() {
           <div className="flex items-start">
             <img
               src="/images/navbarimages/logo.png"
-              alt="Porto Piri Piri"
+              alt={SITE_CONFIG.name}
               className="h-[44px] w-auto object-contain sm:h-[50px]"
             />
           </div>
@@ -27,15 +29,15 @@ export default function Footer() {
                 Home
               </a>
 
-              <a href="#" className="text-[12px] text-black transition-colors hover:text-[#ff542d] sm:text-[13px]">
+              <a href="#our-story" className="text-[12px] text-black transition-colors hover:text-[#ff542d] sm:text-[13px]">
                 Our Story
               </a>
 
-              <a href="#" className="text-[12px] text-black transition-colors hover:text-[#ff542d] sm:text-[13px]">
+              <a href="#menu" className="text-[12px] text-black transition-colors hover:text-[#ff542d] sm:text-[13px]">
                 Menu
               </a>
 
-              <a href="#" className="text-[12px] text-black transition-colors hover:text-[#ff542d] sm:text-[13px]">
+              <a href="#contact" className="text-[12px] text-black transition-colors hover:text-[#ff542d] sm:text-[13px]">
                 Contact
               </a>
             </div>
@@ -49,19 +51,19 @@ export default function Footer() {
 
             <div className="mt-5 flex flex-col gap-4">
               <p className="text-[12px] text-black transition-colors sm:text-[13px]">
-                +441747413273
+                {SITE_CONFIG.contact.phone}
               </p>
 
               <p className="text-[12px] text-black transition-colors sm:text-[13px]">
-                info@portopiripiri.co.uk
+                {SITE_CONFIG.contact.email}
               </p>
 
               <p className="max-w-[150px] text-[12px] leading-[1.7] text-black transition-colors sm:text-[13px]">
-                49 Kilmarnock Road,
+                {SITE_CONFIG.address.street},
                 <br />
-                Shawlands, Glasgow
+                {SITE_CONFIG.address.area}, {SITE_CONFIG.address.city}
                 <br />
-                G41 3YN
+                {SITE_CONFIG.address.postcode}
               </p>
             </div>
           </div>

@@ -5,7 +5,14 @@ import { useEffect, useState } from "react";
 import type { CartItem, SizeType } from "@/lib/types";
 import { getCart, saveCart as saveCartLib } from "@/lib/cart";
 import { isLoggedIn as checkLoggedIn } from "@/lib/auth";
-import { SIZE_PRICES, EXTRA_HOT_CHILLI_PRICE, EVENTS } from "@/lib/constants";
+import {
+  SIZE_PRICES,
+  EXTRA_HOT_CHILLI_PRICE,
+  EVENTS,
+  DELIVERY_FEE,
+  SERVICE_FEE,
+  BAG_CHARGE,
+} from "@/lib/constants";
 import { getPriceNumber } from "@/lib/utils";
 
 export default function CartDrawer() {
@@ -144,9 +151,9 @@ export default function CartDrawer() {
     return total + getItemTotal(item);
   }, 0);
 
-  const deliveryFee = orderType === "delivery" ? 3.99 : 0;
-  const serviceFee = orderType === "delivery" ? 1.99 : 0;
-  const bagCharge = 0.29;
+  const deliveryFee = orderType === "delivery" ? DELIVERY_FEE : 0;
+  const serviceFee = orderType === "delivery" ? SERVICE_FEE : 0;
+  const bagCharge = BAG_CHARGE;
   const discount = 0;
 
   const total =

@@ -1,3 +1,5 @@
+import { SITE_CONFIG } from "@/lib/siteConfig";
+
 export default function OurStory() {
   return (
     <section id="our-story" className="w-full bg-[#f7f7f7] px-5 py-10 sm:px-8 sm:py-12 md:px-10 md:py-14 lg:px-0 lg:py-16">
@@ -49,7 +51,7 @@ export default function OurStory() {
               xl:text-[38px]
             "
           >
-            About Porto Piri Piri
+            About {SITE_CONFIG.name}
           </h2>
 
           {/* ORANGE LINE */}
@@ -79,10 +81,10 @@ export default function OurStory() {
               md:text-[14px]
             "
           >
-            Porto Piri Piri is a Glasgow-based restaurant with a passion for
+            {SITE_CONFIG.name} is a Glasgow-based restaurant with a passion for
             bold, flavour-packed food. Located at{" "}
             <span className="font-bold text-[#4b4140]">
-              49 Kilmarnock Road, Shawlands, Glasgow,
+              {SITE_CONFIG.address.full},
             </span>{" "}
             we have been serving the local community with freshly prepared
             Piri Piri dishes, flame-grilled chicken, juicy burgers, wraps, and
@@ -105,7 +107,7 @@ export default function OurStory() {
             "
           >
             Whether you choose to dine in with us or order a takeaway from the
-            comfort of your home, every meal at Porto Piri Piri is prepared
+            comfort of your home, every meal at {SITE_CONFIG.name} is prepared
             with care, quality ingredients, and a commitment to great taste.
             We believe great food should be accessible, satisfying, and made
             with love.

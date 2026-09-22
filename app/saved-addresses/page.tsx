@@ -2,7 +2,7 @@
 
 import Navbar from "@/components/home/Navbar";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { getLoggedInUser } from "@/lib/auth";
 import { safeLocalStorage } from "@/lib/storage";
 import { STORAGE_KEYS } from "@/lib/constants";
@@ -58,13 +58,16 @@ const getInitialSavedAddresses = (): SavedAddress[] => {
 };
 
 export default function SavedAddressesPage() {
-  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>(getInitialSavedAddresses);
+  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
+  const [contactName, setContactName] = useState("");
 
-  // Form states
-  const [contactName, setContactName] = useState(() => {
-    if (typeof window === "undefined") return "";
-    return getLoggedInUser() || "";
-  });
+  useEffect(() => {
+    setSavedAddresses(getInitialSavedAddresses());
+    const user = getLoggedInUser();
+    if (user) {
+      setContactName(user);
+    }
+  }, []);
   const [contactPhone, setContactPhone] = useState("");
   const [address, setAddress] = useState("");
   const [type, setType] = useState("Home");

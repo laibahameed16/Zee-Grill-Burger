@@ -1,3 +1,5 @@
+import { SITE_CONFIG } from "@/lib/siteConfig";
+
 export default function TopBar() {
   return (
     <div className="relative w-full bg-[#f4f4f4] text-[#333]">
@@ -89,7 +91,7 @@ export default function TopBar() {
                 lg:text-[12px]
               "
             >
-              +01747413273
+              {SITE_CONFIG.contact.displayPhone}
             </span>
           </div>
 
@@ -140,7 +142,7 @@ export default function TopBar() {
                 lg:text-[12px]
               "
             >
-              info@portopiripiri.co.uk
+              {SITE_CONFIG.contact.email}
             </span>
           </div>
         </div>
@@ -212,7 +214,7 @@ export default function TopBar() {
           />
 
           <span className="whitespace-nowrap">
-            FREE DELIVERY ON ORDER ABOVE £20.00
+            {SITE_CONFIG.delivery.bannerText}
           </span>
         </div>
       </div>

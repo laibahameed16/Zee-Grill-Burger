@@ -11,7 +11,13 @@ import { earnPointsFromSpend, getLoyaltyPoints } from "@/lib/loyalty";
 import { getWalletBalance, deductFromWallet } from "@/lib/wallet";
 import { isLoggedIn, getAuthUser } from "@/lib/auth";
 import { safeLocalStorage } from "@/lib/storage";
-import { EVENTS } from "@/lib/constants";
+import {
+  EVENTS,
+  DELIVERY_FEE,
+  SERVICE_FEE,
+  BAG_CHARGE,
+} from "@/lib/constants";
+import { SITE_CONFIG } from "@/lib/siteConfig";
 import { getPriceNumber, getSizePrice, getExtraHotChilliPrice, getItemUnitPrice, getItemTotal, dispatchCustomEvent, generateId } from "@/lib/utils";
 import type { CartItem } from "@/lib/types";
 
@@ -76,13 +82,13 @@ export default function ConfirmationPage() {
   }, [cartItems]);
 
 
-  const serviceFee = 1.99;
-  const bagCharges = 0.29;
+  const serviceFee = SERVICE_FEE;
+  const bagCharges = BAG_CHARGE;
 
   const isPickup =
     checkoutInfo.orderType === "pickup";
 
-  const deliveryFee = isPickup ? 0 : 3.99;
+  const deliveryFee = isPickup ? 0 : DELIVERY_FEE;
 
   const tip =
     typeof checkoutInfo.tip === "number" &&
@@ -122,7 +128,7 @@ export default function ConfirmationPage() {
         couponDiscount);
 
   const address = isPickup
-    ? "49 Kilmarnock Road, Glasgow"
+    ? SITE_CONFIG.address.full
     : [
         checkoutInfo.street,
         checkoutInfo.floor,

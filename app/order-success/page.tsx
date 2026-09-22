@@ -4,8 +4,9 @@ import Navbar from "@/components/home/Navbar";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { safeLocalStorage } from "@/lib/storage";
-import { getOrders } from "@/lib/orders";
+import { getOrders, getLastOrder } from "@/lib/orders";
 import { getPriceNumber } from "@/lib/utils";
+import { SITE_CONFIG } from "@/lib/siteConfig";
 
 type OrderInfo = {
   orderType?: "delivery" | "pickup";
@@ -14,6 +15,7 @@ type OrderInfo = {
 
 export default function OrderSuccessPage() {
   const [orderInfo, setOrderInfo] = useState<OrderInfo>({});
+  const [orderNumber, setOrderNumber] = useState<string>("PPP-24848");
 
   useEffect(() => {
     const savedInfo = safeLocalStorage.get<OrderInfo>(
@@ -24,12 +26,15 @@ export default function OrderSuccessPage() {
     if (savedInfo && typeof savedInfo === "object") {
       setOrderInfo(savedInfo);
     }
+
+    const lastOrder = getLastOrder<{ id?: string }>();
+    if (lastOrder && lastOrder.id) {
+      setOrderNumber(lastOrder.id);
+    }
   }, []);
 
   const isPickup = orderInfo.orderType === "pickup";
-  const estimatedTime = isPickup ? "30–45 mins" : "30–45 mins";
-
-  const orderNumber = "PPP-24848";
+  const estimatedTime = SITE_CONFIG.delivery.estimatedTime;
 
   return (
     <main className="min-h-screen bg-[#f7f6f5] text-[#292929]">

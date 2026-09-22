@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { isLoggedIn } from "@/lib/auth";
 import { EVENTS } from "@/lib/constants";
+import { SITE_CONFIG } from "@/lib/siteConfig";
 
 export default function OpeningPopup() {
   const [isOpen, setIsOpen] = useState(false);
@@ -127,7 +128,7 @@ export default function OpeningPopup() {
             sm:text-[20px]
           "
         >
-          Porto Piri Piri
+          {SITE_CONFIG.name}
         </h2>
 
         {/* OPENING STATUS */}
@@ -147,7 +148,7 @@ export default function OpeningPopup() {
             "
           >
             <span className="h-[6px] w-[6px] rounded-full bg-[#ff542d]" />
-            <span>Opens at 17:00</span>
+            <span>{SITE_CONFIG.delivery.openingHoursText}</span>
           </div>
         </div>
 

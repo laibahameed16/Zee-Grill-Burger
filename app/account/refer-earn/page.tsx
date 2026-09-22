@@ -4,13 +4,19 @@ import Link from "next/link";
 import { useState } from "react";
 import { showNotification } from "@/lib/notifications";
 import Navbar from "@/components/home/Navbar";
+import { getAuthUser } from "@/lib/auth";
+import { SITE_CONFIG } from "@/lib/siteConfig";
 
 export default function ReferEarnPage() {
   const [copied, setCopied] = useState(false);
-  const code = "PORTOLAIB";
+  const authUser = getAuthUser();
+  const code =
+    (authUser as any).referenceCode ||
+    (authUser as any).referralCode ||
+    SITE_CONFIG.referral.defaultCode;
 
-  const shareText = `Hey! Order from Zee Grill Burger and use my referral code ${code} to get a discount on your first order! 🍔🔥`;
-  const shareUrl = "https://zeegrillburger.com";
+  const shareUrl = SITE_CONFIG.referral.siteUrl;
+  const shareText = `Hey! Order from ${SITE_CONFIG.name} and use my referral code ${code} to get a discount on your first order! 🍔🔥`;
 
   const copyCode = () => {
     try {

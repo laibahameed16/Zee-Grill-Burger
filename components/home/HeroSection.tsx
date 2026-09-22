@@ -1,13 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { SITE_CONFIG } from "@/lib/siteConfig";
 
 export default function HeroSection() {
-  const images = [
-    "/images/herosection/Herosection.png",
-    "/images/herosection/carousel1.png",
-    "/images/herosection/carousel2.png",
-  ];
+  const images = SITE_CONFIG.heroBanners;
 
   const [currentSlide, setCurrentSlide] = useState(0);
 

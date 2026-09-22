@@ -9,6 +9,7 @@ import { getCart, getCartCount } from "@/lib/cart";
 import { STORAGE_KEYS, EVENTS } from "@/lib/constants";
 import { safeLocalStorage } from "@/lib/storage";
 import { dispatchCustomEvent } from "@/lib/utils";
+import { SITE_CONFIG } from "@/lib/siteConfig";
 
 type ActiveSection =
   | "home"
@@ -17,7 +18,7 @@ type ActiveSection =
   | "contact"
   | "footer";
 
-type Location = "Glasgow" | "City Centre" | "Scotland";
+type Location = string;
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -313,11 +314,7 @@ export default function Navbar() {
   // LOCATION OPTIONS
   // ---------------------------------------------------------
 
-  const locations: Location[] = [
-    "Glasgow",
-    "City Centre",
-    "Scotland",
-  ];
+  const locations = SITE_CONFIG.locations;
 
   // ---------------------------------------------------------
   // RETURN

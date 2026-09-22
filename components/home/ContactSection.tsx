@@ -1,3 +1,5 @@
+import { SITE_CONFIG } from "@/lib/siteConfig";
+
 export default function ContactSection() {
   return (
     <section id="contact" className="w-full bg-[#f7f7f7] px-5 py-10 sm:px-8 sm:py-12 md:px-10 md:py-14 lg:px-0 lg:py-16 scroll-mt-[76px]">
@@ -27,8 +29,8 @@ export default function ContactSection() {
           "
         >
           <iframe
-            title="Porto Piri Piri Location"
-            src="https://www.google.com/maps?q=49%20Kilmarnock%20Road%2C%20Shawlands%2C%20Glasgow%20G41%203YN&output=embed"
+            title={`${SITE_CONFIG.name} Location`}
+            src={SITE_CONFIG.googleMapsEmbedUrl}
             className="
               block
               h-[300px]
@@ -81,7 +83,7 @@ export default function ContactSection() {
                 md:text-[15px]
               "
             >
-              49 Kilmarnock Road, Shawlands, Glasgow G41 3YN
+              {SITE_CONFIG.address.full}
             </p>
           </div>
 
@@ -111,7 +113,7 @@ export default function ContactSection() {
                 md:text-[15px]
               "
             >
-              +441747413273
+              {SITE_CONFIG.contact.phone}
             </p>
           </div>
 
@@ -142,7 +144,7 @@ export default function ContactSection() {
                 md:text-[15px]
               "
             >
-              info@portopiripiri.co.uk
+              {SITE_CONFIG.contact.email}
             </p>
           </div>
         </div>

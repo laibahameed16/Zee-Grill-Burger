@@ -8,7 +8,7 @@ export interface ApiConfig {
 }
 
 export const API_CONFIG: ApiConfig = {
-  baseUrl: "/api",
+  baseUrl: process.env.NEXT_PUBLIC_API_URL || "/api",
   timeout: 30000,
 };
 

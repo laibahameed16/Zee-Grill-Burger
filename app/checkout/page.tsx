@@ -9,7 +9,14 @@ import {
 import Navbar from "@/components/home/Navbar";
 import { getCart } from "@/lib/cart";
 import { getSavedAddresses, getDefaultAddress } from "@/lib/addresses";
-import { STORAGE_KEYS, EVENTS } from "@/lib/constants";
+import {
+  STORAGE_KEYS,
+  EVENTS,
+  DELIVERY_FEE,
+  SERVICE_FEE,
+  BAG_CHARGE,
+} from "@/lib/constants";
+import { validateCoupon } from "@/lib/coupons";
 import { safeLocalStorage } from "@/lib/storage";
 import { isLoggedIn, getAuthUser, getLoggedInUser } from "@/lib/auth";
 import { getPriceNumber, getSizePrice, getExtraHotChilliPrice } from "@/lib/utils";
@@ -353,11 +360,11 @@ export default function CheckoutPage() {
 
   const deliveryFee =
     orderType === "delivery"
-      ? 3.99
+      ? DELIVERY_FEE
       : 0;
 
-  const serviceFee = 1.99;
-  const bagCharge = 0.29;
+  const serviceFee = SERVICE_FEE;
+  const bagCharge = BAG_CHARGE;
 
   /* =====================================================
       OTHER TIP AMOUNT
@@ -444,59 +451,17 @@ export default function CheckoutPage() {
       COUPON
   ====================================================== */
 
-  const VALID_COUPONS: Record<
-    string,
-    {
-      discount: number;
-      label: string;
-    }
-  > = {
-    SAVE10: {
-      discount: 0.1,
-      label: "10%",
-    },
-    ZEEGRILL10: {
-      discount: 0.1,
-      label: "10%",
-    },
-    WELCOME10: {
-      discount: 0.1,
-      label: "10%",
-    },
-    SAVE15: {
-      discount: 0.15,
-      label: "15%",
-    },
-    ZEEGRILL15: {
-      discount: 0.15,
-      label: "15%",
-    },
-    WELCOME15: {
-      discount: 0.15,
-      label: "15%",
-    },
-    SAVE20: {
-      discount: 0.2,
-      label: "20%",
-    },
-  };
-
   const handleApplyCoupon = () => {
-    const code =
-      coupon.trim().toUpperCase();
+    const code = coupon.trim().toUpperCase();
 
     if (!code) {
-      showNotification(
-        "error",
-        "Please enter a coupon code."
-      );
+      showNotification("error", "Please enter a coupon code.");
       return;
     }
 
     if (
       isFullWalletPayment ||
-      selectedWalletAmount >=
-        totalBillBeforeCouponAndWallet
+      selectedWalletAmount >= totalBillBeforeCouponAndWallet
     ) {
       showNotification(
         "error",
@@ -514,66 +479,35 @@ export default function CheckoutPage() {
     }
 
     if (subtotal < 1) {
+      showNotification("error", "Coupon requires items in your cart.");
+      return;
+    }
+
+    const validation = validateCoupon(code, totalBillBeforeCouponAndWallet);
+
+    if (!validation.valid || !validation.coupon) {
       showNotification(
         "error",
-        "Coupon requires items in your cart."
+        validation.error || `Coupon code "${code}" is not valid.`
       );
       return;
     }
 
-    let couponData =
-      VALID_COUPONS[code];
-
-    if (!couponData) {
-      const match =
-        code.match(
-          /(10|15|20|25|30|50)/
-        );
-
-      if (match) {
-        const pct =
-          parseInt(
-            match[1],
-            10
-          );
-
-        couponData = {
-          discount: pct / 100,
-          label: `${pct}%`,
-        };
-      }
-    }
-
-    if (!couponData) {
-      showNotification(
-        "error",
-        `Coupon code "${code}" is not valid.`
-      );
-      return;
-    }
-
-    const discountAmount =
-      parseFloat(
-        (
-          totalBillBeforeCouponAndWallet *
-          couponData.discount
-        ).toFixed(2)
-      );
+    const discountAmount = parseFloat((validation.discount || 0).toFixed(2));
+    const label = `${validation.coupon.discountValue}%`;
 
     setAppliedCouponCode(code);
-    setCouponDiscount(
-      discountAmount
-    );
+    setCouponDiscount(discountAmount);
     setCoupon("");
 
     showNotification(
       "success",
-      `${couponData.label} discount apply on your total bill`
+      `${label} discount apply on your total bill`
     );
 
     addPersistentNotification(
       `Coupon Applied! 🎟️`,
-      `${couponData.label} discount apply on your total bill. You saved £${discountAmount.toFixed(
+      `${label} discount apply on your total bill. You saved £${discountAmount.toFixed(
         2
       )}.`,
       "coupon"

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { showNotification } from "@/lib/notifications";
 import Navbar from "@/components/home/Navbar";
+import { SITE_CONFIG } from "@/lib/siteConfig";
 
 export default function HelpSupportPage() {
   const [name, setName] = useState("");
@@ -28,12 +29,7 @@ export default function HelpSupportPage() {
     setSubmitting(false);
   };
 
-  const faqs = [
-    { q: "How do I track my order?", a: "Once your order is placed, you can track it from the My Orders page. You will also receive SMS/email updates." },
-    { q: "What are your delivery hours?", a: "We deliver from 11:00 AM to 11:00 PM, 7 days a week." },
-    { q: "Can I cancel my order?", a: "Orders can be cancelled within 5 minutes of placing them from the My Orders section." },
-    { q: "How do I use a coupon code?", a: "Enter your coupon code in the checkout page before confirming payment." },
-  ];
+  const faqs = SITE_CONFIG.faqs;
 
   return (
     <main className="min-h-screen bg-[#f7f6f5] text-[#292929]">

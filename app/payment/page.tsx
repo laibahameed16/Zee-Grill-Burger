@@ -5,7 +5,12 @@ import { useEffect, useState } from "react";
 import { showNotification } from "@/lib/notifications";
 import { getCart } from "@/lib/cart";
 import { safeLocalStorage } from "@/lib/storage";
-import { EVENTS } from "@/lib/constants";
+import {
+  EVENTS,
+  DELIVERY_FEE,
+  SERVICE_FEE,
+  BAG_CHARGE,
+} from "@/lib/constants";
 import { getPriceNumber, getSizePrice, getExtraHotChilliPrice, getItemUnitPrice, getItemTotal, dispatchCustomEvent } from "@/lib/utils";
 import type { CartItem } from "@/lib/types";
 import Navbar from "@/components/home/Navbar";
@@ -117,11 +122,11 @@ export default function PaymentPage() {
 
   const deliveryFee =
     checkoutInfo.orderType === "delivery"
-      ? 3.99
+      ? DELIVERY_FEE
       : 0;
 
-  const serviceFee = 1.99;
-  const bagCharge = 0.29;
+  const serviceFee = SERVICE_FEE;
+  const bagCharge = BAG_CHARGE;
 
   const tipAmount = Number.isFinite(Number(checkoutInfo.tip))
     ? Math.max(0, Number(checkoutInfo.tip))
