@@ -1,4 +1,12 @@
-import { STORAGE_KEYS, EVENTS, POINTS_PER_POUND, DUMMY_SEED_POINTS } from "./constants";
+import {
+  STORAGE_KEYS,
+  EVENTS,
+  POINTS_PER_POUND,
+  DUMMY_SEED_POINTS,
+  LOYALTY_EARN_MIN_SPEND,
+  LOYALTY_EARN_POINTS_PER_TIER,
+  LOYALTY_EARN_TIER_AMOUNT,
+} from "./constants";
 import { safeLocalStorage } from "./storage";
 import { dispatchCustomEvent, generateId } from "./utils";
 import { addToWallet } from "./wallet";
@@ -33,8 +41,10 @@ export const addLoyaltyPoints = (points: number): number => {
 
 export const earnPointsFromSpend = (spendAmount: number): number => {
   if (!Number.isFinite(spendAmount) || spendAmount <= 0) return 0;
-  const points = Math.floor(spendAmount * POINTS_PER_POUND);
-  if (points > 0) addLoyaltyPoints(points);
+  if (spendAmount < LOYALTY_EARN_MIN_SPEND) return 0;
+  const tiers = Math.floor(spendAmount / LOYALTY_EARN_TIER_AMOUNT);
+  const points = tiers * LOYALTY_EARN_POINTS_PER_TIER;
+  addLoyaltyPoints(points);
   return points;
 };
 

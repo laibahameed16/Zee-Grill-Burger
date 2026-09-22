@@ -4,35 +4,10 @@ import Navbar from "@/components/home/Navbar";
 import Link from "next/link";
 import { useState } from "react";
 import { addPersistentNotification, showNotification } from "@/lib/notifications";
+import { AVAILABLE_COUPONS } from "@/lib/constants";
+import type { Coupon } from "@/lib/types";
 
-type Coupon = {
-  title: string;
-  code: string;
-  desc: string;
-  exp: string;
-};
-
-// Available coupons — always shown, cannot be removed
-const availableCoupons: Coupon[] = [
-  {
-    title: "10% Off",
-    code: "SAVE10",
-    desc: "10% off on your order (min £5, excl. tip & wallet)",
-    exp: "Expires 31 Dec 2026",
-  },
-  {
-    title: "10% Off",
-    code: "ZEEGRILL10",
-    desc: "10% off on your order (min £5, excl. tip & wallet)",
-    exp: "Expires 31 Dec 2026",
-  },
-  {
-    title: "10% Off",
-    code: "WELCOME10",
-    desc: "10% off on your order (min £5, excl. tip & wallet)",
-    exp: "Expires 31 Dec 2026",
-  },
-];
+const availableCoupons: Coupon[] = [...AVAILABLE_COUPONS];
 
 export default function CouponsPage() {
   const [couponCode, setCouponCode] = useState("");

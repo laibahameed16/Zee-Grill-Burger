@@ -38,10 +38,15 @@ export const validateCoupon = (
   }
 
   let discount = 0;
-  if (coupon.discountType === "percentage" && coupon.discountValue) {
-    discount = (subtotal * coupon.discountValue) / 100;
-  } else if (coupon.discountType === "fixed" && coupon.discountValue) {
-    discount = coupon.discountValue;
+  const discountType = coupon.discountType;
+  const discountValue = coupon.discountValue;
+
+  if (discountType && discountValue !== undefined) {
+    if (discountType === "percentage") {
+      discount = (subtotal * discountValue) / 100;
+    } else if (discountType === "fixed") {
+      discount = discountValue;
+    }
   }
 
   return { valid: true, coupon, discount };

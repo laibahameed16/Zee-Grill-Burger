@@ -6,7 +6,8 @@ import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft } from "lucide-react";
 import Navbar from "@/components/home/Navbar";
 import { getCart } from "@/lib/cart";
-import { getOrders, getLastOrder, getOrderCompletedFlag } from "@/lib/orders";
+import {
+  getOrders, getLastOrder, getOrderCompletedFlag, FALLBACK_ORDERS } from "@/lib/orders";
 import { isLoggedIn } from "@/lib/auth";
 import { showNotification } from "@/lib/notifications";
 import { safeLocalStorage } from "@/lib/storage";
@@ -21,101 +22,7 @@ const getBasePrice = (price: string | number) => getPriceNumber(price);
 const getUnitPrice = (item: CartItem) => getItemUnitPrice(item);
 const getLineTotal = (item: CartItem) => getItemTotal(item);
 
-
-
-const fallbackOrders: OrderCard[] = [
-  {
-    id: "PPP-1028",
-    date: "Aug 25, 2026",
-    time: "6:10 PM",
-    items: [
-      {
-        name: "Piri Piri Wrap Meal",
-        price: "£7.95",
-        quantity: 2,
-        image: "/images/menupictures/product-placeholder.svg",
-      },
-      {
-        name: "Neffis Milkshake",
-        price: "£5.25",
-        quantity: 1,
-        image: "/images/menupictures/product-placeholder.svg",
-      },
-    ],
-    total: 27.38,
-    status: "Preparing",
-    orderType: "delivery",
-    cutlery: "Yes",
-  },
-  {
-    id: "PPP-1026",
-    date: "Aug 24, 2026",
-    time: "4:30 PM",
-    items: [
-      {
-        name: "Beef Burger Menu",
-        price: "£12.95",
-        quantity: 1,
-        image: "/images/menupictures/product-placeholder.svg",
-      },
-    ],
-    total: 12.95,
-    status: "Picked up",
-    orderType: "pickup",
-    cutlery: "No",
-  },
-  {
-    id: "PPP-1024",
-    date: "Aug 24, 2026",
-    time: "7:45 PM",
-    items: [
-      {
-        name: "Piri Piri Wing Platter",
-        price: "£29.83",
-        quantity: 1,
-        image: "/images/menupictures/product-placeholder.svg",
-      },
-    ],
-    total: 29.83,
-    status: "Delivered",
-    orderType: "delivery",
-    cutlery: "No",
-  },
-  {
-    id: "PPP-1022",
-    date: "Aug 22, 2026",
-    time: "1:15 PM",
-    items: [
-      {
-        name: "Piri Piri Wrap Meal",
-        price: "£14.84",
-        quantity: 1,
-        image: "/images/menupictures/product-placeholder.svg",
-      },
-    ],
-    total: 14.84,
-    status: "Delivered",
-    orderType: "delivery",
-    cutlery: "Yes",
-  },
-  {
-    id: "PPP-1019",
-    date: "Aug 20, 2026",
-    time: "8:00 PM",
-    items: [
-      {
-        name: "Piri Piri Wing Platter",
-        price: "£21.93",
-        quantity: 1,
-        image: "/images/menupictures/product-placeholder.svg",
-      },
-    ],
-    total: 21.93,
-    status: "Cancelled",
-    orderType: "delivery",
-    cutlery: "No",
-  },
-];
+const fallbackOrders: OrderCard[] = FALLBACK_ORDERS;
 
 const getPrice = (price: string) =>
   Number.parseFloat(String(price).replace(/[^0-9.]/g, "")) || 0;
@@ -138,10 +45,10 @@ export default function MyOrdersPage() {
         return;
       }
 
-      const lastOrder = getLastOrder();
+      const lastOrder = getLastOrder<OrderCard | null>();
 
       if (lastOrder) {
-        setOrders([lastOrder, ...fallbackOrders]);
+        setOrders([lastOrder as OrderCard, ...fallbackOrders]);
         return;
       }
 

@@ -19,6 +19,112 @@ export const setOrderCompletedFlag = (value: boolean): void => {
   safeLocalStorage.setBoolean(STORAGE_KEYS.ORDER_COMPLETED, value);
 };
 
+export const FALLBACK_ORDERS: OrderCard[] = [
+  {
+    id: "PPP-1028",
+    date: "Aug 25, 2026",
+    time: "6:10 PM",
+    items: [
+      {
+        name: "Piri Piri Wrap Meal",
+        description: "Delicious wrap with grilled chicken and sauces",
+        price: "£7.95",
+        badge: "POPULAR",
+        quantity: 2,
+        image: "/images/menupictures/product-placeholder.svg",
+      },
+      {
+        name: "Neffis Milkshake",
+        description: "Creamy and refreshing milkshake",
+        price: "£5.25",
+        badge: "RECOMMENDED",
+        quantity: 1,
+        image: "/images/menupictures/product-placeholder.svg",
+      },
+    ],
+    total: 27.38,
+    status: "Preparing",
+    orderType: "delivery",
+    cutlery: "Yes",
+  },
+  {
+    id: "PPP-1026",
+    date: "Aug 24, 2026",
+    time: "4:30 PM",
+    items: [
+      {
+        name: "Beef Burger Menu",
+        description: "Juicy beef burger with fries and drink",
+        price: "£12.95",
+        badge: "POPULAR",
+        quantity: 1,
+        image: "/images/menupictures/product-placeholder.svg",
+      },
+    ],
+    total: 12.95,
+    status: "Picked up",
+    orderType: "pickup",
+    cutlery: "No",
+  },
+  {
+    id: "PPP-1024",
+    date: "Aug 24, 2026",
+    time: "7:45 PM",
+    items: [
+      {
+        name: "Piri Piri Wing Platter",
+        description: "Flame-grilled wings with signature sauce",
+        price: "£29.83",
+        badge: "RECOMMENDED",
+        quantity: 1,
+        image: "/images/menupictures/product-placeholder.svg",
+      },
+    ],
+    total: 29.83,
+    status: "Delivered",
+    orderType: "delivery",
+    cutlery: "No",
+  },
+  {
+    id: "PPP-1022",
+    date: "Aug 22, 2026",
+    time: "1:15 PM",
+    items: [
+      {
+        name: "Piri Piri Wrap Meal",
+        description: "Delicious wrap with grilled chicken and sauces",
+        price: "£14.84",
+        badge: "POPULAR",
+        quantity: 1,
+        image: "/images/menupictures/product-placeholder.svg",
+      },
+    ],
+    total: 14.84,
+    status: "Delivered",
+    orderType: "delivery",
+    cutlery: "Yes",
+  },
+  {
+    id: "PPP-1019",
+    date: "Aug 20, 2026",
+    time: "8:00 PM",
+    items: [
+      {
+        name: "Piri Piri Wing Platter",
+        description: "Flame-grilled wings with signature sauce",
+        price: "£21.93",
+        badge: "RECOMMENDED",
+        quantity: 1,
+        image: "/images/menupictures/product-placeholder.svg",
+      },
+    ],
+    total: 21.93,
+    status: "Cancelled",
+    orderType: "delivery",
+    cutlery: "No",
+  },
+];
+
 const SEED_ORDERS: OrderCard[] = [
   {
     id: "PPP-1028",

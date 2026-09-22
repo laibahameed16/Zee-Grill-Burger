@@ -69,6 +69,10 @@ export const EXTRA_HOT_CHILLI_PRICE = 0.5;
 export const POINTS_PER_POUND = 10;
 export const DUMMY_SEED_POINTS = 500;
 
+export const LOYALTY_EARN_MIN_SPEND = 50;
+export const LOYALTY_EARN_POINTS_PER_TIER = 10;
+export const LOYALTY_EARN_TIER_AMOUNT = 50;
+
 export const TIP_OPTIONS = [5, 10, 15] as const;
 
 export const DELIVERY_FEE = 3.99;
