@@ -3,52 +3,18 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { showNotification } from "@/lib/notifications";
+import { getCart } from "@/lib/cart";
+import { safeLocalStorage } from "@/lib/storage";
+import { EVENTS } from "@/lib/constants";
+import { getPriceNumber, getSizePrice, getExtraHotChilliPrice, getItemUnitPrice, getItemTotal, dispatchCustomEvent } from "@/lib/utils";
+import type { CartItem } from "@/lib/types";
 import Navbar from "@/components/home/Navbar";
 
 type PaymentMethod = "cash" | "card";
 
-type CartItem = {
-  name: string;
-  description?: string;
-  price: string;
-  quantity: number;
-  image?: string;
-  imageUrl?: string;
-  img?: string;
-  size?: "Small" | "Medium" | "Large";
-  extraHotChilli?: boolean;
-};
-
-/* =========================================================
-   PRICE HELPERS (same as checkout page)
-========================================================= */
-
-const getBasePrice = (price: string | number) => {
-  const parsedPrice = Number.parseFloat(
-    String(price).replace(/[^0-9.]/g, "")
-  );
-  return Number.isFinite(parsedPrice) ? parsedPrice : 0;
-};
-
-const getSizePrice = (size?: "Small" | "Medium" | "Large") => {
-  switch (size) {
-    case "Medium": return 1;
-    case "Large": return 2;
-    case "Small":
-    default: return 0;
-  }
-};
-
-const getExtraHotChilliPrice = (extraHotChilli?: boolean) =>
-  extraHotChilli ? 0.5 : 0;
-
-const getUnitPrice = (item: CartItem) =>
-  getBasePrice(item.price) +
-  getSizePrice(item.size) +
-  getExtraHotChilliPrice(item.extraHotChilli);
-
-const getLineTotal = (item: CartItem) =>
-  getUnitPrice(item) * item.quantity;
+const getBasePrice = (price: string | number) => getPriceNumber(price);
+const getUnitPrice = (item: CartItem) => getItemUnitPrice(item);
+const getLineTotal = (item: CartItem) => getItemTotal(item);
 
 type CheckoutInfo = {
   firstName: string;
@@ -102,40 +68,26 @@ export default function PaymentPage() {
   ========================================================= */
 
   useEffect(() => {
-    try {
-      const savedCart = JSON.parse(
-        localStorage.getItem("zee-grill-cart") || "[]"
-      );
+    setCartItems(getCart());
 
-      setCartItems(
-        Array.isArray(savedCart) ? savedCart : []
-      );
-    } catch {
-      setCartItems([]);
+    const savedCheckoutInfo = safeLocalStorage.get<Partial<CheckoutInfo>>(
+      "zee-grill-checkout-info",
+      {}
+    );
+
+    if (
+      savedCheckoutInfo &&
+      typeof savedCheckoutInfo === "object"
+    ) {
+      setCheckoutInfo((current) => ({
+        ...current,
+        ...savedCheckoutInfo,
+      }));
     }
 
-    try {
-      const savedCheckoutInfo = JSON.parse(
-        localStorage.getItem(
-          "zee-grill-checkout-info"
-        ) || "{}"
-      );
-
-      if (
-        savedCheckoutInfo &&
-        typeof savedCheckoutInfo === "object"
-      ) {
-        setCheckoutInfo((current) => ({
-          ...current,
-          ...savedCheckoutInfo,
-        }));
-      }
-    } catch {
-      setCheckoutInfo((current) => current);
-    }
-
-    const savedPayment = localStorage.getItem(
-      "zee-grill-payment-method"
+    const savedPayment = safeLocalStorage.getString(
+      "zee-grill-payment-method",
+      ""
     );
 
     if (
@@ -145,12 +97,7 @@ export default function PaymentPage() {
       setPaymentMethod(savedPayment);
     }
 
-    const savedCardPreference =
-      localStorage.getItem(
-        "zee-grill-save-card"
-      );
-
-    if (savedCardPreference === "true") {
+    if (safeLocalStorage.getBoolean("zee-grill-save-card", false)) {
       setSaveCard(true);
     }
   }, []);
@@ -220,7 +167,7 @@ export default function PaymentPage() {
   ) => {
     setPaymentMethod(method);
 
-    localStorage.setItem(
+    safeLocalStorage.setString(
       "zee-grill-payment-method",
       method
     );
@@ -253,7 +200,7 @@ export default function PaymentPage() {
       }
     }
 
-    localStorage.setItem(
+    safeLocalStorage.setString(
       "zee-grill-payment-method",
       paymentMethod
     );
@@ -262,12 +209,12 @@ export default function PaymentPage() {
       paymentMethod === "card" &&
       saveCard
     ) {
-      localStorage.setItem(
+      safeLocalStorage.setBoolean(
         "zee-grill-save-card",
-        "true"
+        true
       );
     } else {
-      localStorage.removeItem(
+      safeLocalStorage.remove(
         "zee-grill-save-card"
       );
     }

@@ -1,21 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { CartItem as LibCartItem } from "@/lib/types";
+import {
+  getCart as getCartLib,
+  saveCart as saveCartLib,
+} from "@/lib/cart";
+import { isLoggedIn as checkLoggedIn } from "@/lib/auth";
+import { getWalletBalance } from "@/lib/wallet";
+import { TIP_OPTIONS as TIP_OPTS, EVENTS } from "@/lib/constants";
+import { getPriceNumber, dispatchCustomEvent } from "@/lib/utils";
 
-type CartItem = {
-  name: string;
-  description: string;
-  price: string;
-  badge: "POPULAR" | "RECOMMENDED";
-  quantity: number;
-};
+type CartItem = LibCartItem;
 
 export default function CartPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   /* ===== TIP ===== */
-  const TIP_OPTIONS = [5, 10, 15];
+  const TIP_OPTIONS = TIP_OPTS;
   const [selectedTip, setSelectedTip] = useState<number | null>(null);
   const [customTip, setCustomTip] = useState("");
   const [tipMode, setTipMode] = useState<"preset" | "custom" | null>(null);
@@ -28,42 +31,39 @@ export default function CartPage() {
      LOAD CART + USER
   ========================== */
   useEffect(() => {
-    const user =
-      localStorage.getItem(
-        "zee-grill-user"
-      );
+    const load = () => {
+      setIsLoggedIn(checkLoggedIn());
+      setCart(getCartLib());
+      setWalletBalance(getWalletBalance());
+    };
 
-    setIsLoggedIn(!!user);
-
-    const savedCart = JSON.parse(
-      localStorage.getItem("zee-grill-cart") ||
-        "[]"
-    );
-
-    setCart(savedCart);
-
-    const bal = Number(
-      localStorage.getItem("zee-grill-wallet-balance") || "0"
-    );
-    setWalletBalance(bal);
+    load();
 
     const handleWallet = () => {
-      const b = Number(localStorage.getItem("zee-grill-wallet-balance") || "0");
-      setWalletBalance(b);
+      setWalletBalance(getWalletBalance());
     };
-    window.addEventListener("wallet-updated", handleWallet);
-    return () => window.removeEventListener("wallet-updated", handleWallet);
+
+    const handleCart = () => {
+      setCart(getCartLib());
+    };
+
+    const handleAuth = () => {
+      load();
+    };
+
+    window.addEventListener(EVENTS.WALLET_UPDATED, handleWallet);
+    window.addEventListener(EVENTS.CART_UPDATED, handleCart);
+    window.addEventListener(EVENTS.AUTH_CHANGED, handleAuth);
+    return () => {
+      window.removeEventListener(EVENTS.WALLET_UPDATED, handleWallet);
+      window.removeEventListener(EVENTS.CART_UPDATED, handleCart);
+      window.removeEventListener(EVENTS.AUTH_CHANGED, handleAuth);
+    };
   }, []);
 
   /* =========================
      PRICE
   ========================== */
-  const getPriceNumber = (price: string) => {
-    return Number(
-      price.replace("£", "").trim()
-    ) || 0;
-  };
-
   const total = cart.reduce(
     (sum, item) =>
       sum +
@@ -97,15 +97,7 @@ export default function CartPage() {
   ========================== */
   const saveCart = (newCart: CartItem[]) => {
     setCart(newCart);
-
-    localStorage.setItem(
-      "zee-grill-cart",
-      JSON.stringify(newCart)
-    );
-
-    window.dispatchEvent(
-      new Event("cart-updated")
-    );
+    saveCartLib(newCart);
   };
 
   /* =========================

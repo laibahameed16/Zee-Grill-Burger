@@ -3,6 +3,9 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import Navbar from "@/components/home/Navbar";
+import { getWalletBalance } from "@/lib/wallet";
+import { getConversionHistory } from "@/lib/loyalty";
+import { EVENTS } from "@/lib/constants";
 
 type ConversionRecord = {
   id: string;
@@ -17,34 +20,19 @@ export default function WalletPage() {
 
   useEffect(() => {
     const load = () => {
-      const bal = Number(
-        localStorage.getItem("zee-grill-wallet-balance") || "0"
-      );
-
-      setWalletBalance(
-        Number.isFinite(bal) ? Math.max(0, bal) : 0
-      );
-
-      try {
-        const h = JSON.parse(
-          localStorage.getItem("zee-grill-lp-history") || "[]"
-        ) as ConversionRecord[];
-
-        setHistory(Array.isArray(h) ? h : []);
-      } catch {
-        setHistory([]);
-      }
+      setWalletBalance(getWalletBalance());
+      setHistory(getConversionHistory());
     };
 
     load();
 
-    window.addEventListener("wallet-updated", load);
-    window.addEventListener("loyalty-points-updated", load);
+    window.addEventListener(EVENTS.WALLET_UPDATED, load);
+    window.addEventListener(EVENTS.LOYALTY_POINTS_UPDATED, load);
     window.addEventListener("storage", load);
 
     return () => {
-      window.removeEventListener("wallet-updated", load);
-      window.removeEventListener("loyalty-points-updated", load);
+      window.removeEventListener(EVENTS.WALLET_UPDATED, load);
+      window.removeEventListener(EVENTS.LOYALTY_POINTS_UPDATED, load);
       window.removeEventListener("storage", load);
     };
   }, []);

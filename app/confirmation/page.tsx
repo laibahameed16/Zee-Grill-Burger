@@ -5,48 +5,19 @@ import Navbar from "@/components/home/Navbar";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { addPersistentNotification, showNotification } from "@/lib/notifications";
+import { getCart, clearCart } from "@/lib/cart";
+import { placeOrder } from "@/lib/orders";
+import { earnPointsFromSpend, getLoyaltyPoints } from "@/lib/loyalty";
+import { getWalletBalance, deductFromWallet } from "@/lib/wallet";
+import { isLoggedIn, getAuthUser } from "@/lib/auth";
+import { safeLocalStorage } from "@/lib/storage";
+import { EVENTS } from "@/lib/constants";
+import { getPriceNumber, getSizePrice, getExtraHotChilliPrice, getItemUnitPrice, getItemTotal, dispatchCustomEvent, generateId } from "@/lib/utils";
+import type { CartItem } from "@/lib/types";
 
-type CartItem = {
-  name: string;
-  price: string;
-  quantity: number;
-  image?: string;
-  imageUrl?: string;
-  img?: string;
-  size?: "Small" | "Medium" | "Large";
-  extraHotChilli?: boolean;
-};
-
-/* =========================================================
-   PRICE HELPERS (same as checkout page)
-========================================================= */
-
-const getBasePrice = (price: string | number) => {
-  const parsedPrice = Number.parseFloat(
-    String(price).replace(/[^0-9.]/g, "")
-  );
-  return Number.isFinite(parsedPrice) ? parsedPrice : 0;
-};
-
-const getSizePrice = (size?: "Small" | "Medium" | "Large") => {
-  switch (size) {
-    case "Medium": return 1;
-    case "Large": return 2;
-    case "Small":
-    default: return 0;
-  }
-};
-
-const getExtraHotChilliPrice = (extraHotChilli?: boolean) =>
-  extraHotChilli ? 0.5 : 0;
-
-const getUnitPrice = (item: CartItem) =>
-  getBasePrice(item.price) +
-  getSizePrice(item.size) +
-  getExtraHotChilliPrice(item.extraHotChilli);
-
-const getLineTotal = (item: CartItem) =>
-  getUnitPrice(item) * item.quantity;
+const getBasePrice = (price: string | number) => getPriceNumber(price);
+const getUnitPrice = (item: CartItem) => getItemUnitPrice(item);
+const getLineTotal = (item: CartItem) => getItemTotal(item);
 
 
 type CheckoutInfo = {
@@ -75,41 +46,27 @@ export default function ConfirmationPage() {
   const [orderCompleted, setOrderCompleted] = useState(false);
 
   useEffect(() => {
-    try {
-      const savedCart = JSON.parse(
-        localStorage.getItem("zee-grill-cart") || "[]"
-      );
+    setCartItems(getCart());
 
-      setCartItems(Array.isArray(savedCart) ? savedCart : []);
-    } catch {
-      setCartItems([]);
+    const savedInfo = safeLocalStorage.get<CheckoutInfo>(
+      "zee-grill-checkout-info",
+      {}
+    );
+
+    if (savedInfo && typeof savedInfo === "object") {
+      setCheckoutInfo(savedInfo);
     }
 
-    try {
-      const savedInfo = JSON.parse(
-        localStorage.getItem("zee-grill-checkout-info") || "{}"
-      );
-
-      if (savedInfo && typeof savedInfo === "object") {
-        setCheckoutInfo(savedInfo);
-      }
-    } catch {
-      setCheckoutInfo({});
-    }
-
-    const savedPayment = localStorage.getItem(
-      "zee-grill-payment-method"
+    const savedPayment = safeLocalStorage.getString(
+      "zee-grill-payment-method",
+      ""
     );
 
     if (savedPayment === "card" || savedPayment === "cash") {
       setPaymentMethod(savedPayment);
     }
 
-    const savedOrderCompleted = localStorage.getItem(
-      "zee-grill-order-completed"
-    );
-
-    if (savedOrderCompleted === "true") {
+    if (safeLocalStorage.getBoolean("zee-grill-order-completed", false)) {
       setOrderCompleted(true);
     }
   }, []);
@@ -930,81 +887,26 @@ export default function ConfirmationPage() {
               }
 
               try {
-                const currentOrders = JSON.parse(
-                  localStorage.getItem("zee-grill-orders") || "[]"
-                );
-
                 // -----------------------------------------------
                 // LOYALTY POINTS
                 // -----------------------------------------------
-                const savedPointsRaw = Number.parseInt(
-                  localStorage.getItem("zee-grill-loyalty-points") || "0",
-                  10
-                );
-
-                const currentPoints =
-                  Number.isFinite(savedPointsRaw) && savedPointsRaw >= 0
-                    ? savedPointsRaw
-                    : 0;
-
-                // 10 points per £50 spent
-                const earnedPoints =
-                  Math.floor(Math.max(0, subtotal) / 50) * 10;
-
+                const currentPoints = getLoyaltyPoints();
+                const earnedPoints = earnPointsFromSpend(subtotal);
                 const updatedPoints = currentPoints + earnedPoints;
-
-                localStorage.setItem(
-                  "zee-grill-loyalty-points",
-                  String(updatedPoints)
-                );
 
                 // -----------------------------------------------
                 // WALLET DEDUCTION
                 // -----------------------------------------------
-                const savedWalletRaw = Number.parseFloat(
-                  localStorage.getItem("zee-grill-wallet-balance") || "0"
-                );
-
-                const currentWallet =
-                  Number.isFinite(savedWalletRaw) && savedWalletRaw >= 0
-                    ? savedWalletRaw
-                    : 0;
-
-                const newWalletBalance = Math.max(
-                  0,
-                  currentWallet - walletAmount
-                );
-
-                if (walletAmount > 0) {
-                  localStorage.setItem(
-                    "zee-grill-wallet-balance",
-                    newWalletBalance.toFixed(2)
-                  );
-                  window.dispatchEvent(new Event("wallet-updated"));
-                }
+                const currentWallet = getWalletBalance();
+                const walletResult = walletAmount > 0
+                  ? deductFromWallet(walletAmount)
+                  : { success: false, deducted: 0, newBalance: currentWallet };
+                const newWalletBalance = walletResult.newBalance;
 
                 // -----------------------------------------------
-                // DISPATCH EVENTS
+                // ORDER OBJECT via placeOrder()
                 // -----------------------------------------------
-                window.dispatchEvent(new Event("loyalty-points-updated"));
-
-                // -----------------------------------------------
-                // ORDER OBJECT
-                // -----------------------------------------------
-                const newOrder = {
-                  id: `PPP-${Math.floor(10000 + Math.random() * 90000)}`,
-
-                  date: new Date().toLocaleDateString("en-GB", {
-                    month: "short",
-                    day: "numeric",
-                    year: "numeric",
-                  }),
-
-                  time: new Date().toLocaleTimeString("en-GB", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  }),
-
+                const newOrder = placeOrder({
                   items: cartItems.map((item) => ({
                     ...item,
                     image:
@@ -1013,7 +915,6 @@ export default function ConfirmationPage() {
                       item.img ||
                       "/images/menupictures/product-placeholder.svg",
                   })),
-
                   subtotal,
                   deliveryFee,
                   serviceFee,
@@ -1023,33 +924,14 @@ export default function ConfirmationPage() {
                   couponCode,
                   couponDiscount,
                   total,
-
                   status: "Preparing",
-
                   cutlery: checkoutInfo.cutlery || "No",
-
                   orderType: checkoutInfo.orderType || "delivery",
+                });
 
-                  address,
-
-                  loyaltyPointsEarned: earnedPoints,
-                  loyaltyPointsRemaining: updatedPoints,
-
-                  walletCreditEarned: 0,
-                  walletBalanceAfterOrder: newWalletBalance,
-                };
-
-                localStorage.setItem(
-                  "zee-grill-orders",
-                  JSON.stringify([
-                    newOrder,
-                    ...(Array.isArray(currentOrders) ? currentOrders : []),
-                  ])
-                );
-
-                localStorage.setItem(
+                safeLocalStorage.set(
                   "zee-grill-last-order",
-                  JSON.stringify(newOrder)
+                  { ...newOrder, address, loyaltyPointsEarned: earnedPoints, loyaltyPointsRemaining: updatedPoints, walletCreditEarned: 0, walletBalanceAfterOrder: newWalletBalance }
                 );
 
                 // -----------------------------------------------
@@ -1113,10 +995,9 @@ export default function ConfirmationPage() {
                 // local storage fallback
               }
 
-              localStorage.setItem("zee-grill-order-completed", "true");
-              localStorage.removeItem("zee-grill-cart");
+              safeLocalStorage.setBoolean("zee-grill-order-completed", true);
+              clearCart();
 
-              window.dispatchEvent(new Event("cart-updated"));
               setOrderCompleted(true);
             }}
             className={`

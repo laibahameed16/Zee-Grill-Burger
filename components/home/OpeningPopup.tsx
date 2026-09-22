@@ -1,15 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { isLoggedIn } from "@/lib/auth";
+import { EVENTS } from "@/lib/constants";
 
 export default function OpeningPopup() {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
     // Check if user is logged in
-    const loggedInUser =
-      localStorage.getItem("loggedInUser") ||
-      localStorage.getItem("zee-grill-user");
+    const loggedInUser = isLoggedIn();
 
     // If user is already logged in, do not show popup
     if (loggedInUser) {
@@ -28,20 +28,18 @@ export default function OpeningPopup() {
     setIsOpen(true);
 
     const handleAuthChange = () => {
-      const currentUser =
-        localStorage.getItem("loggedInUser") ||
-        localStorage.getItem("zee-grill-user");
+      const currentUser = isLoggedIn();
       if (currentUser) {
         setIsOpen(false);
       }
     };
 
-    window.addEventListener("auth-changed", handleAuthChange);
-    window.addEventListener("user-logged-in", handleAuthChange);
+    window.addEventListener(EVENTS.AUTH_CHANGED, handleAuthChange);
+    window.addEventListener(EVENTS.USER_LOGGED_IN, handleAuthChange);
 
     return () => {
-      window.removeEventListener("auth-changed", handleAuthChange);
-      window.removeEventListener("user-logged-in", handleAuthChange);
+      window.removeEventListener(EVENTS.AUTH_CHANGED, handleAuthChange);
+      window.removeEventListener(EVENTS.USER_LOGGED_IN, handleAuthChange);
     };
   }, []);
 

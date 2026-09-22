@@ -8,6 +8,7 @@ import {
   type UserProfile,
 } from "@/lib/userProfile";
 import { showNotification } from "@/lib/notifications";
+import { getRegisteredUsers, saveRegisteredUsers } from "@/lib/auth";
 import Navbar from "@/components/home/Navbar";
 
 export default function ProfilePage() {
@@ -107,24 +108,16 @@ export default function ProfilePage() {
       }
 
       try {
-        const usersRaw = localStorage.getItem("zee-grill-registered-users");
+        const users = getRegisteredUsers();
 
-        if (usersRaw) {
-          const users = JSON.parse(usersRaw);
+        const idx = users.findIndex(
+          (u) =>
+            u.email?.toLowerCase() === profile.email?.toLowerCase()
+        );
 
-          const idx = users.findIndex(
-            (u: any) =>
-              u.email?.toLowerCase() === profile.email?.toLowerCase()
-          );
-
-          if (idx !== -1) {
-            users[idx].password = newPassword;
-
-            localStorage.setItem(
-              "zee-grill-registered-users",
-              JSON.stringify(users)
-            );
-          }
+        if (idx !== -1) {
+          users[idx].password = newPassword;
+          saveRegisteredUsers(users);
         }
       } catch {
         // ignore

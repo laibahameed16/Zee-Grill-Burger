@@ -4,6 +4,9 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { showNotification } from "@/lib/notifications";
 import Navbar from "@/components/home/Navbar";
+import { getAuthUser, getLoggedInUser, logoutUser } from "@/lib/auth";
+import { EVENTS } from "@/lib/constants";
+import { dispatchCustomEvent } from "@/lib/utils";
 
 export default function AccountPage() {
   const [userName, setUserName] = useState("");
@@ -12,38 +15,29 @@ export default function AccountPage() {
 
   useEffect(() => {
     const updateUser = () => {
-      const savedUser = localStorage.getItem("loggedInUser");
+      const savedUser = getLoggedInUser();
       if (savedUser) {
         setUserName(savedUser);
       } else {
         setUserName("");
       }
 
-      try {
-        const raw = localStorage.getItem("zee-grill-user");
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          setProfilePic(parsed.profilePic || "");
-        } else {
-          setProfilePic("");
-        }
-      } catch {
-        setProfilePic("");
-      }
+      const authUser = getAuthUser();
+      setProfilePic(authUser.profilePic || "");
     };
 
     updateUser();
 
-    window.addEventListener("auth-changed", updateUser);
-    window.addEventListener("user-logged-in", updateUser);
-    window.addEventListener("user-logged-out", updateUser);
-    window.addEventListener("profile-updated", updateUser);
+    window.addEventListener(EVENTS.AUTH_CHANGED, updateUser);
+    window.addEventListener(EVENTS.USER_LOGGED_IN, updateUser);
+    window.addEventListener(EVENTS.USER_LOGGED_OUT, updateUser);
+    window.addEventListener(EVENTS.PROFILE_UPDATED, updateUser);
 
     return () => {
-      window.removeEventListener("auth-changed", updateUser);
-      window.removeEventListener("user-logged-in", updateUser);
-      window.removeEventListener("user-logged-out", updateUser);
-      window.removeEventListener("profile-updated", updateUser);
+      window.removeEventListener(EVENTS.AUTH_CHANGED, updateUser);
+      window.removeEventListener(EVENTS.USER_LOGGED_IN, updateUser);
+      window.removeEventListener(EVENTS.USER_LOGGED_OUT, updateUser);
+      window.removeEventListener(EVENTS.PROFILE_UPDATED, updateUser);
     };
   }, []);
 
@@ -51,11 +45,7 @@ export default function AccountPage() {
     userName.trim().charAt(0).toUpperCase() || "A";
 
   const handleLogout = () => {
-    localStorage.removeItem("loggedInUser");
-    localStorage.removeItem("zee-grill-user");
-
-    window.dispatchEvent(new Event("auth-changed"));
-    window.dispatchEvent(new Event("user-logged-out"));
+    logoutUser();
 
     showNotification("success", "Logged out successfully.");
 

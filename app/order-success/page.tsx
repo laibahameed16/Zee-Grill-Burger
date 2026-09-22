@@ -3,6 +3,9 @@
 import Navbar from "@/components/home/Navbar";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { safeLocalStorage } from "@/lib/storage";
+import { getOrders } from "@/lib/orders";
+import { getPriceNumber } from "@/lib/utils";
 
 type OrderInfo = {
   orderType?: "delivery" | "pickup";
@@ -13,16 +16,13 @@ export default function OrderSuccessPage() {
   const [orderInfo, setOrderInfo] = useState<OrderInfo>({});
 
   useEffect(() => {
-    try {
-      const savedInfo = JSON.parse(
-        localStorage.getItem("zee-grill-checkout-info") || "{}"
-      );
+    const savedInfo = safeLocalStorage.get<OrderInfo>(
+      "zee-grill-checkout-info",
+      {}
+    );
 
-      if (savedInfo && typeof savedInfo === "object") {
-        setOrderInfo(savedInfo);
-      }
-    } catch {
-      setOrderInfo({});
+    if (savedInfo && typeof savedInfo === "object") {
+      setOrderInfo(savedInfo);
     }
   }, []);
 

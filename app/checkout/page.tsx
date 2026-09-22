@@ -7,6 +7,12 @@ import {
   addPersistentNotification,
 } from "@/lib/notifications";
 import Navbar from "@/components/home/Navbar";
+import { getCart } from "@/lib/cart";
+import { getSavedAddresses, getDefaultAddress } from "@/lib/addresses";
+import { STORAGE_KEYS, EVENTS } from "@/lib/constants";
+import { safeLocalStorage } from "@/lib/storage";
+import { isLoggedIn, getAuthUser, getLoggedInUser } from "@/lib/auth";
+import { getPriceNumber, getSizePrice, getExtraHotChilliPrice } from "@/lib/utils";
 
 type OrderType = "delivery" | "pickup";
 type OrderTime = "asap" | "schedule";
@@ -29,35 +35,11 @@ type CartItem = {
 ===================================================== */
 
 const getBasePrice = (price: string | number) => {
-  const parsedPrice = Number.parseFloat(
-    String(price).replace(/[^0-9.]/g, "")
-  );
-
-  return Number.isFinite(parsedPrice) ? parsedPrice : 0;
-};
-
-const getSizePrice = (
-  size?: "Small" | "Medium" | "Large"
-) => {
-  switch (size) {
-    case "Medium":
-      return 1;
-    case "Large":
-      return 2;
-    case "Small":
-    default:
-      return 0;
-  }
-};
-
-const getExtraHotChilliPrice = (
-  extraHotChilli?: boolean
-) => {
-  return extraHotChilli ? 0.5 : 0;
+  return getPriceNumber(price);
 };
 
 const getUnitPrice = (item: CartItem) => {
-  const basePrice = getBasePrice(item.price);
+  const basePrice = getPriceNumber(item.price);
   const sizePrice = getSizePrice(item.size);
   const extraHotChilliPrice =
     getExtraHotChilliPrice(item.extraHotChilli);
@@ -157,22 +139,12 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     try {
-      const storedAddrs = localStorage.getItem(
-        "zee-grill-saved-addresses"
-      );
+      const storedAddrs = getSavedAddresses();
 
-      if (storedAddrs) {
-        const parsed = JSON.parse(storedAddrs);
-
-        if (
-          Array.isArray(parsed) &&
-          parsed.length > 0
-        ) {
-          setSavedAddresses(parsed);
-        }
+      if (Array.isArray(storedAddrs) && storedAddrs.length > 0) {
+        setSavedAddresses(storedAddrs as any[]);
       } else {
-        const single =
-          localStorage.getItem("savedAddress");
+        const single = safeLocalStorage.getString("savedAddress");
 
         if (single) {
           const parsed = JSON.parse(single);
@@ -213,15 +185,11 @@ export default function CheckoutPage() {
     ================================================= */
 
     try {
-      const savedCart = JSON.parse(
-        localStorage.getItem(
-          "zee-grill-cart"
-        ) || "[]"
-      );
+      const savedCart = getCart();
 
       setCartItems(
         Array.isArray(savedCart)
-          ? savedCart
+          ? (savedCart as any[])
           : []
       );
     } catch {
@@ -233,56 +201,38 @@ export default function CheckoutPage() {
     ================================================= */
 
     try {
-      const savedUser =
-        localStorage.getItem(
-          "zee-grill-user"
-        );
+      const user = getAuthUser();
 
-      if (!savedUser) return;
+      if (user.firstName) {
+        setFirstName(String(user.firstName));
+      }
 
-      const user = JSON.parse(savedUser);
+      if (user.lastName) {
+        setLastName(String(user.lastName));
+      }
+
+      if (user.phone) {
+        setPhone(String(user.phone));
+      }
 
       if (
-        user &&
-        typeof user === "object"
+        !user.firstName &&
+        user.name
       ) {
-        if (user.firstName) {
-          setFirstName(
-            String(user.firstName)
-          );
-        }
+        const nameParts =
+          String(user.name)
+            .trim()
+            .split(/\s+/);
 
-        if (user.lastName) {
-          setLastName(
-            String(user.lastName)
-          );
-        }
+        setFirstName(
+          nameParts[0] || ""
+        );
 
-        if (user.phone) {
-          setPhone(
-            String(user.phone)
-          );
-        }
-
-        if (
-          !user.firstName &&
-          user.name
-        ) {
-          const nameParts =
-            String(user.name)
-              .trim()
-              .split(/\s+/);
-
-          setFirstName(
-            nameParts[0] || ""
-          );
-
-          setLastName(
-            nameParts
-              .slice(1)
-              .join(" ")
-          );
-        }
+        setLastName(
+          nameParts
+            .slice(1)
+            .join(" ")
+        );
       }
     } catch {
       // Keep fields empty
@@ -294,7 +244,7 @@ export default function CheckoutPage() {
 
     try {
       const possibleWalletKeys = [
-        "zee-grill-wallet-balance",
+        STORAGE_KEYS.WALLET_BALANCE,
         "walletBalance",
         "wallet-balance",
       ];
@@ -303,11 +253,11 @@ export default function CheckoutPage() {
 
       for (const key of possibleWalletKeys) {
         const storedWallet =
-          localStorage.getItem(key);
+          safeLocalStorage.getString(key);
 
-        if (storedWallet !== null) {
+        if (storedWallet !== null && storedWallet !== "") {
           const parsedWallet =
-            JSON.parse(storedWallet);
+            safeLocalStorage.get<any>(key, null);
 
           if (
             typeof parsedWallet === "number"
@@ -850,9 +800,9 @@ export default function CheckoutPage() {
         SAVE CHECKOUT INFORMATION
     ================================================= */
 
-    localStorage.setItem(
+    safeLocalStorage.set(
       "zee-grill-checkout-info",
-      JSON.stringify({
+      {
         firstName,
         lastName,
         phone,
@@ -881,14 +831,14 @@ export default function CheckoutPage() {
         serviceFee,
         bagCharge,
         total,
-      })
+      }
     );
 
     /* =================================================
         MARK CHECKOUT AS COMPLETED
     ================================================= */
 
-    localStorage.setItem(
+    safeLocalStorage.setString(
       "zee-grill-checkout-completed",
       "true"
     );

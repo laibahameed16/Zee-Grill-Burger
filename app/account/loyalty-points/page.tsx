@@ -3,10 +3,19 @@
 import Link from "next/link";
 import Navbar from "@/components/home/Navbar";
 import { useEffect, useState } from "react";
+import {
+  getLoyaltyPoints,
+  setLoyaltyPoints,
+  getConversionHistory,
+  saveConversionHistory,
+  getWalletReadyAmount,
+  getPointsAvailableForWallet,
+  getPointsToNextPound,
+} from "@/lib/loyalty";
+import { POINTS_PER_POUND, DUMMY_SEED_POINTS, EVENTS } from "@/lib/constants";
+import { isLoggedIn } from "@/lib/auth";
+import { addToWallet, getWalletBalance } from "@/lib/wallet";
 import { addPersistentNotification, showNotification } from "@/lib/notifications";
-
-const POINTS_PER_POUND = 10;
-const DUMMY_SEED_POINTS = 500;
 
 type ConversionRecord = {
   id: string;
@@ -22,45 +31,28 @@ export default function LoyaltyPointsPage() {
 
   useEffect(() => {
     const load = () => {
-      // Seed 500 dummy points if nothing stored yet
-      const raw = localStorage.getItem("zee-grill-loyalty-points");
-      if (raw === null) {
-        localStorage.setItem("zee-grill-loyalty-points", String(DUMMY_SEED_POINTS));
-        setPoints(DUMMY_SEED_POINTS);
-      } else {
-        const existing = Number(raw || "0");
-        setPoints(Number.isFinite(existing) && existing >= 0 ? existing : 0);
-      }
-
-      try {
-        const h = JSON.parse(
-          localStorage.getItem("zee-grill-lp-history") || "[]"
-        ) as ConversionRecord[];
-        setHistory(Array.isArray(h) ? h : []);
-      } catch {
-        setHistory([]);
-      }
+      setPoints(getLoyaltyPoints());
+      setHistory(getConversionHistory());
     };
 
     load();
 
-    window.addEventListener("loyalty-points-updated", load);
-    window.addEventListener("wallet-updated", load);
+    window.addEventListener(EVENTS.LOYALTY_POINTS_UPDATED, load);
+    window.addEventListener(EVENTS.WALLET_UPDATED, load);
     window.addEventListener("storage", load);
 
     return () => {
-      window.removeEventListener("loyalty-points-updated", load);
-      window.removeEventListener("wallet-updated", load);
+      window.removeEventListener(EVENTS.LOYALTY_POINTS_UPDATED, load);
+      window.removeEventListener(EVENTS.WALLET_UPDATED, load);
       window.removeEventListener("storage", load);
     };
   }, []);
 
-  const pointsToNextPound = points % POINTS_PER_POUND;
+  const pointsToNextPound = getPointsToNextPound();
 
-  const pointsAvailableForWallet =
-    Math.floor(points / POINTS_PER_POUND) * POINTS_PER_POUND;
+  const pointsAvailableForWallet = getPointsAvailableForWallet();
 
-  const walletReadyAmount = Math.floor(points / POINTS_PER_POUND);
+  const walletReadyAmount = getWalletReadyAmount();
 
   // =========================================================
   // MANUAL CONVERT
@@ -70,11 +62,7 @@ export default function LoyaltyPointsPage() {
   const handleConvert = () => {
     if (isConverting) return;
 
-    const savedPoints = Number(
-      localStorage.getItem("zee-grill-loyalty-points") || "0"
-    );
-    const currentPoints =
-      Number.isFinite(savedPoints) && savedPoints >= 0 ? savedPoints : 0;
+    const currentPoints = getLoyaltyPoints();
 
     let pointsToConvert = 0;
     
@@ -89,7 +77,7 @@ export default function LoyaltyPointsPage() {
         return;
       }
     } else {
-      pointsToConvert = Math.floor(currentPoints / POINTS_PER_POUND) * POINTS_PER_POUND;
+      pointsToConvert = getPointsAvailableForWallet();
       if (pointsToConvert <= 0) {
         showNotification("error", "You need at least 10 Loyalty Points to convert automatically.");
         return;
@@ -99,33 +87,17 @@ export default function LoyaltyPointsPage() {
     setIsConverting(true);
 
     const walletCredit = pointsToConvert / POINTS_PER_POUND;
-
-    const savedWallet = Number(
-      localStorage.getItem("zee-grill-wallet-balance") || "0"
-    );
-
-    const currentWallet =
-      Number.isFinite(savedWallet) && savedWallet >= 0 ? savedWallet : 0;
-
-    const updatedWallet = currentWallet + walletCredit;
     const remainingPoints = currentPoints - pointsToConvert;
 
     // UPDATE LOYALTY POINTS
-    localStorage.setItem("zee-grill-loyalty-points", String(remainingPoints));
+    setLoyaltyPoints(remainingPoints);
 
     // UPDATE WALLET
-    localStorage.setItem("zee-grill-wallet-balance", updatedWallet.toFixed(2));
+    addToWallet(walletCredit);
+    const updatedWallet = getWalletBalance();
 
     // UPDATE CONVERSION HISTORY
-    let existingHistory: ConversionRecord[] = [];
-    try {
-      const savedHistory = JSON.parse(
-        localStorage.getItem("zee-grill-lp-history") || "[]"
-      );
-      if (Array.isArray(savedHistory)) existingHistory = savedHistory;
-    } catch {
-      existingHistory = [];
-    }
+    const existingHistory = getConversionHistory();
 
     const newRecord: ConversionRecord = {
       id: `lp-${Date.now()}`,
@@ -135,15 +107,12 @@ export default function LoyaltyPointsPage() {
     };
 
     const updatedHistory = [newRecord, ...existingHistory];
-    localStorage.setItem("zee-grill-lp-history", JSON.stringify(updatedHistory));
+    saveConversionHistory(updatedHistory);
 
     // UPDATE UI
     setPoints(remainingPoints);
     setHistory(updatedHistory);
     setManualPointsToConvert("");
-
-    window.dispatchEvent(new Event("loyalty-points-updated"));
-    window.dispatchEvent(new Event("wallet-updated"));
 
     // TOAST NOTIFICATION
     showNotification(

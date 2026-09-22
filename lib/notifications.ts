@@ -1,3 +1,7 @@
+import { STORAGE_KEYS, EVENTS } from "./constants";
+import { safeLocalStorage } from "./storage";
+import { dispatchCustomEvent } from "./utils";
+
 export type NotificationType = "success" | "error" | "info" | "warning";
 
 export interface NotificationData {
@@ -42,7 +46,10 @@ export type PersistentNotification = {
   read: boolean;
 };
 
-const STORAGE_KEY = "zee-grill-notifications";
+export function savePersistentNotifications(list: PersistentNotification[]): void {
+  safeLocalStorage.set(STORAGE_KEYS.NOTIFICATIONS, list);
+  dispatchCustomEvent(EVENTS.NOTIFICATIONS_UPDATED);
+}
 
 export function addPersistentNotification(
   title: string,
@@ -51,17 +58,10 @@ export function addPersistentNotification(
 ) {
   if (typeof window === "undefined") return;
 
-  let existing: PersistentNotification[] = [];
-
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed)) existing = parsed;
-    }
-  } catch {
-    existing = [];
-  }
+  const existing = safeLocalStorage.get<PersistentNotification[]>(
+    STORAGE_KEYS.NOTIFICATIONS,
+    []
+  );
 
   const newNotif: PersistentNotification = {
     id: `notif-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
@@ -78,23 +78,14 @@ export function addPersistentNotification(
     read: false,
   };
 
-  const updated = [newNotif, ...existing];
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-
-  // Notify the notifications page to re-render
-  window.dispatchEvent(new Event("notifications-updated"));
+  savePersistentNotifications([newNotif, ...existing]);
 }
 
 export function getPersistentNotifications(): PersistentNotification[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
+  return safeLocalStorage.get<PersistentNotification[]>(
+    STORAGE_KEYS.NOTIFICATIONS,
+    []
+  );
 }
 
 export function getUnreadNotificationCount(): number {

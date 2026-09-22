@@ -1,14 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-
-type MenuItem = {
-  name: string;
-  description: string;
-  price: string;
-  badge: "POPULAR" | "RECOMMENDED";
-  image: string;
-};
+import type { MenuItem, CartItem, SizeType } from "@/lib/types";
+import { getFavourites, toggleFavourite as libToggleFavourite } from "@/lib/favourites";
+import { addToCart as libAddToCart } from "@/lib/cart";
+import { isLoggedIn as checkLoggedIn } from "@/lib/auth";
+import { SIZE_PRICES, EXTRA_HOT_CHILLI_PRICE, EVENTS } from "@/lib/constants";
+import { getPriceNumber, dispatchCustomEvent } from "@/lib/utils";
 
 type MenuSectionProps = {
   id: string;
@@ -16,12 +14,6 @@ type MenuSectionProps = {
   items: MenuItem[];
   isFirstSection?: boolean;
   searchQuery?: string;
-};
-
-type CartItem = MenuItem & {
-  quantity: number;
-  size?: "Small" | "Medium" | "Large";
-  extraHotChilli?: boolean;
 };
 
 export default function MenuSection({
@@ -36,31 +28,20 @@ export default function MenuSection({
   const [isFavourite, setIsFavourite] = useState(false);
   const [favouriteNames, setFavouriteNames] = useState<string[]>([]);
   const [extraHotChilli, setExtraHotChilli] = useState(false);
-  const [selectedSize, setSelectedSize] = useState<
-    "Small" | "Medium" | "Large"
-  >("Medium");
+  const [selectedSize, setSelectedSize] = useState<SizeType>("Medium");
 
   /* =========================
      CHECK LOGIN / FAVOURITES
   ========================== */
   useEffect(() => {
     const loadFavourites = () => {
-      const user = localStorage.getItem("loggedInUser");
-
-      if (!user) {
+      if (!checkLoggedIn()) {
         setFavouriteNames([]);
         return;
       }
 
-      try {
-        const saved = JSON.parse(
-          localStorage.getItem("zee-grill-favourites") || "[]"
-        ) as MenuItem[];
-
-        setFavouriteNames(saved.map((item) => item.name));
-      } catch {
-        setFavouriteNames([]);
-      }
+      const saved = getFavourites();
+      setFavouriteNames(saved.map((item) => item.name));
     };
 
     loadFavourites();
@@ -73,15 +54,15 @@ export default function MenuSection({
       loadFavourites();
     };
 
-    window.addEventListener("user-logged-in", handleLoginChange);
-    window.addEventListener("user-logged-out", handleLoginChange);
-    window.addEventListener("favorites-updated", handleFavouritesUpdate);
+    window.addEventListener(EVENTS.USER_LOGGED_IN, handleLoginChange);
+    window.addEventListener(EVENTS.USER_LOGGED_OUT, handleLoginChange);
+    window.addEventListener(EVENTS.FAVOURITES_UPDATED, handleFavouritesUpdate);
 
     return () => {
-      window.removeEventListener("user-logged-in", handleLoginChange);
-      window.removeEventListener("user-logged-out", handleLoginChange);
+      window.removeEventListener(EVENTS.USER_LOGGED_IN, handleLoginChange);
+      window.removeEventListener(EVENTS.USER_LOGGED_OUT, handleLoginChange);
       window.removeEventListener(
-        "favorites-updated",
+        EVENTS.FAVOURITES_UPDATED,
         handleFavouritesUpdate
       );
     };
@@ -105,68 +86,35 @@ export default function MenuSection({
      FAVOURITE
   ========================== */
   const toggleFavourite = (item: MenuItem) => {
-    const user = localStorage.getItem("loggedInUser");
-
-    if (!user) {
-      window.dispatchEvent(new Event("open-login"));
+    if (!checkLoggedIn()) {
+      dispatchCustomEvent(EVENTS.OPEN_LOGIN);
       return;
     }
 
-    let existingFavourites: MenuItem[] = [];
+    const existingNames = favouriteNames;
+    const alreadyFav = existingNames.includes(item.name);
+    const { added } = libToggleFavourite(item);
 
-    try {
-      existingFavourites = JSON.parse(
-        localStorage.getItem("zee-grill-favourites") || "[]"
-      ) as MenuItem[];
-    } catch {
-      existingFavourites = [];
-    }
-
-    const existingIndex = existingFavourites.findIndex(
-      (favourite) => favourite.name === item.name
-    );
-
-    if (existingIndex !== -1) {
-      existingFavourites.splice(existingIndex, 1);
-    } else {
-      existingFavourites.push(item);
-    }
-
-    localStorage.setItem(
-      "zee-grill-favourites",
-      JSON.stringify(existingFavourites)
-    );
-
-    setFavouriteNames(
-      existingFavourites.map((favourite) => favourite.name)
-    );
+    const favouritesNow = getFavourites();
+    setFavouriteNames(favouritesNow.map((f) => f.name));
 
     if (selectedItem?.name === item.name) {
-      setIsFavourite(existingIndex === -1);
+      setIsFavourite(added);
     }
 
-    window.dispatchEvent(new Event("favorites-updated"));
-
-    window.dispatchEvent(
-      new CustomEvent("site-notification", {
-        detail: {
-          message:
-            existingIndex === -1
-              ? "Item added to favourites"
-              : "Item removed from favourites",
-        },
-      })
-    );
+    dispatchCustomEvent(EVENTS.SITE_NOTIFICATION, {
+      message: added
+        ? "Item added to favourites"
+        : "Item removed from favourites",
+    });
   };
 
   /* =========================
      CHOOSE ITEM
   ========================== */
   const handleChoose = (item: MenuItem) => {
-    const user = localStorage.getItem("loggedInUser");
-
-    if (!user) {
-      window.dispatchEvent(new Event("open-login"));
+    if (!checkLoggedIn()) {
+      dispatchCustomEvent(EVENTS.OPEN_LOGIN);
       return;
     }
 
@@ -191,10 +139,6 @@ export default function MenuSection({
   /* =========================
      PRICE
   ========================== */
-  const getPriceNumber = (price: string) => {
-    return Number(price.replace("£", "").trim()) || 0;
-  };
-
   const itemPrice = selectedItem
     ? getPriceNumber(selectedItem.price)
     : 0;
@@ -202,18 +146,13 @@ export default function MenuSection({
   /* =========================
      SIZE PRICES
   ========================== */
-  const sizePrices = {
-    Small: 0,
-    Medium: 1,
-    Large: 2,
-  };
 
-  const sizePrice = sizePrices[selectedSize];
+  const sizePrice = SIZE_PRICES[selectedSize];
 
   /* =========================
      EXTRA HOT CHILLI PRICE
   ========================== */
-  const extraHotChilliPrice = extraHotChilli ? 0.5 : 0;
+  const extraHotChilliPrice = extraHotChilli ? EXTRA_HOT_CHILLI_PRICE : 0;
 
   /* =========================
      TOTAL PRICE
@@ -229,48 +168,17 @@ export default function MenuSection({
   const handleAddToCart = () => {
     if (!selectedItem) return;
 
-    const user = localStorage.getItem("loggedInUser");
-
-    if (!user) {
+    if (!checkLoggedIn()) {
       closeCustomise();
-      window.dispatchEvent(new Event("open-login"));
+      dispatchCustomEvent(EVENTS.OPEN_LOGIN);
       return;
     }
 
-    let existingCart: CartItem[] = [];
-
-    try {
-      existingCart = JSON.parse(
-        localStorage.getItem("zee-grill-cart") || "[]"
-      );
-    } catch {
-      existingCart = [];
-    }
-
-    const existingItemIndex = existingCart.findIndex(
-      (cartItem) =>
-        cartItem.name === selectedItem.name &&
-        cartItem.size === selectedSize &&
-        cartItem.extraHotChilli === extraHotChilli
-    );
-
-    if (existingItemIndex !== -1) {
-      existingCart[existingItemIndex].quantity += quantity;
-    } else {
-      existingCart.push({
-        ...selectedItem,
-        quantity,
-        size: selectedSize,
-        extraHotChilli,
-      });
-    }
-
-    localStorage.setItem(
-      "zee-grill-cart",
-      JSON.stringify(existingCart)
-    );
-
-    window.dispatchEvent(new Event("cart-updated"));
+    libAddToCart(selectedItem, {
+      quantity,
+      size: selectedSize,
+      extraHotChilli,
+    });
 
     closeCustomise();
   };
@@ -787,7 +695,7 @@ export default function MenuSection({
                   <div className="grid grid-cols-3 gap-2">   
                     {(["Small", "Medium", "Large"] as const).map(   
                       (size) => {   
-                        const price = sizePrices[size];   
+                        const price = SIZE_PRICES[size];   
    
                         return (   
                           <button   

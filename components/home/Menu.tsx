@@ -2,101 +2,7 @@
 
 import { useState } from "react";
 import MenuSection from "./MenuSection";
-
-const categories = [
-  "Porto Kebabs",
-  "Quesadilla",
-  "Sides",
-  "Drinks",
-  "Burrito",
-  "Platters",
-  "Dips",
-  "Kids Meal",
-  "Rice",
-  "Burgers",
-  "Tandoori Dishes",
-  "Biryani Dishes",
-  "Hoogies",
-  "Bread",
-  "Chips With Starters",
-  "Thrill Of Grill",
-  "Korma Dishes",
-  "Street Bites",
-  "European Dishes",
-  "Wraps",
-  "Special Wings",
-];
-
-const PLACEHOLDER_IMAGE = "/images/menupictures/product-placeholder.svg";
-
-/* =====================================================
-   CREATE ITEMS
-===================================================== */
-
-const createItems = (
-  category: string,
-  _categoryIndex?: number
-) => {
-  return [
-    {
-      name: `${category} Item 1`,
-      description:
-        "Delicious freshly prepared food made with quality ingredients.",
-      price: "£3.95",
-      badge: "POPULAR" as const,
-      image: PLACEHOLDER_IMAGE,
-    },
-    {
-      name: `${category} Item 2`,
-      description:
-        "Freshly prepared with delicious flavours and quality ingredients.",
-      price: "£4.50",
-      badge: "RECOMMENDED" as const,
-      image: PLACEHOLDER_IMAGE,
-    },
-    {
-      name: `${category} Item 3`,
-      description:
-        "A delicious choice prepared fresh and served with great flavour.",
-      price: "£5.25",
-      badge: "RECOMMENDED" as const,
-      image: PLACEHOLDER_IMAGE,
-    },
-    {
-      name: `${category} Item 4`,
-      description:
-        "Crispy, tasty and freshly prepared for you.",
-      price: "£3.50",
-      badge: "POPULAR" as const,
-      image: PLACEHOLDER_IMAGE,
-    },
-    {
-      name: `${category} Item 5`,
-      description:
-        "Flame-grilled and freshly prepared with delicious seasoning.",
-      price: "£3.95",
-      badge: "RECOMMENDED" as const,
-      image: PLACEHOLDER_IMAGE,
-    },
-    {
-      name: `${category} Item 6`,
-      description:
-        "A customer favourite made fresh and full of flavour.",
-      price: "£4.50",
-      badge: "POPULAR" as const,
-      image: PLACEHOLDER_IMAGE,
-    },
-  ];
-};
-
-/* =====================================================
-   SECTION ID
-===================================================== */
-
-const getId = (category: string) =>
-  `menu-${category
-    .toLowerCase()
-    .replace(/\s+/g, "-")}`;
+import { MENU_CATEGORIES, createMenuItems, getMenuSectionId } from "@/lib/menu";
 
 /* =====================================================
    MENU
@@ -145,8 +51,8 @@ export default function Menu() {
       {/* =====================================================
           MENU SECTIONS
       ====================================================== */}
-      {categories.map((category, categoryIndex) => {
-        const items = createItems(category, categoryIndex);
+      {MENU_CATEGORIES.map((category, categoryIndex) => {
+        const items = createMenuItems(category, categoryIndex);
 
         // When searching, hide sections that have no matching items
         if (searchQuery) {
@@ -162,7 +68,7 @@ export default function Menu() {
         return (
           <MenuSection
             key={category}
-            id={getId(category)}
+            id={getMenuSectionId(category)}
             title={category}
             items={items}
             searchQuery={searchQuery}
@@ -173,8 +79,8 @@ export default function Menu() {
       {/* NO RESULTS MESSAGE */}
       {searchQuery && (() => {
         const search = searchQuery.toLowerCase().trim();
-        const anyMatch = categories.some((category, idx) => {
-          const items = createItems(category, idx);
+        const anyMatch = MENU_CATEGORIES.some((category, idx) => {
+          const items = createMenuItems(category, idx);
           return items.some(
             (item) =>
               item.name.toLowerCase().includes(search) ||

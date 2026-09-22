@@ -3,6 +3,9 @@
 import Navbar from "@/components/home/Navbar";
 import Link from "next/link";
 import { useState } from "react";
+import { getLoggedInUser } from "@/lib/auth";
+import { safeLocalStorage } from "@/lib/storage";
+import { STORAGE_KEYS } from "@/lib/constants";
 
 export interface SavedAddress {
   id: string;
@@ -22,21 +25,18 @@ const getInitialSavedAddresses = (): SavedAddress[] => {
   if (typeof window === "undefined") return [];
 
   try {
-    const stored = localStorage.getItem("zee-grill-saved-addresses");
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      if (Array.isArray(parsed)) {
-        return parsed;
-      }
+    const stored = safeLocalStorage.get<SavedAddress[]>(STORAGE_KEYS.SAVED_ADDRESSES, []);
+    if (Array.isArray(stored) && stored.length > 0) {
+      return stored;
     }
 
-    const legacy = localStorage.getItem("savedAddress");
+    const legacy = safeLocalStorage.getString("savedAddress");
     if (legacy) {
       const parsed = JSON.parse(legacy);
       if (parsed && typeof parsed === "object" && parsed.address) {
         const item: SavedAddress = {
           id: `addr-${Date.now()}`,
-          contactName: parsed.contactName || localStorage.getItem("loggedInUser") || "User",
+          contactName: parsed.contactName || getLoggedInUser() || "User",
           contactPhone: parsed.contactPhone || "",
           address: parsed.address || "",
           type: parsed.type || "Home",
@@ -46,7 +46,7 @@ const getInitialSavedAddresses = (): SavedAddress[] => {
           createdAt: Date.now(),
         };
 
-        localStorage.setItem("zee-grill-saved-addresses", JSON.stringify([item]));
+        safeLocalStorage.set(STORAGE_KEYS.SAVED_ADDRESSES, [item]);
         return [item];
       }
     }
@@ -63,7 +63,7 @@ export default function SavedAddressesPage() {
   // Form states
   const [contactName, setContactName] = useState(() => {
     if (typeof window === "undefined") return "";
-    return localStorage.getItem("loggedInUser") || "";
+    return getLoggedInUser() || "";
   });
   const [contactPhone, setContactPhone] = useState("");
   const [address, setAddress] = useState("");
@@ -144,13 +144,10 @@ export default function SavedAddressesPage() {
     const updated = [newAddress, ...savedAddresses];
     setSavedAddresses(updated);
 
-    localStorage.setItem(
-      "zee-grill-saved-addresses",
-      JSON.stringify(updated)
-    );
+    safeLocalStorage.set(STORAGE_KEYS.SAVED_ADDRESSES, updated);
 
     // Keep legacy savedAddress in sync with the latest address
-    localStorage.setItem("savedAddress", JSON.stringify(newAddress));
+    safeLocalStorage.set("savedAddress", newAddress);
 
     // Reset input fields
     setAddress("");
@@ -175,15 +172,12 @@ export default function SavedAddressesPage() {
   const handleDeleteAddress = (id: string) => {
     const updated = savedAddresses.filter((item) => item.id !== id);
     setSavedAddresses(updated);
-    localStorage.setItem(
-      "zee-grill-saved-addresses",
-      JSON.stringify(updated)
-    );
+    safeLocalStorage.set(STORAGE_KEYS.SAVED_ADDRESSES, updated);
 
     if (updated.length > 0) {
-      localStorage.setItem("savedAddress", JSON.stringify(updated[0]));
+      safeLocalStorage.set("savedAddress", updated[0]);
     } else {
-      localStorage.removeItem("savedAddress");
+      safeLocalStorage.remove("savedAddress");
     }
   };
 

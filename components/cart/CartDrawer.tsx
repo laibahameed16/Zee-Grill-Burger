@@ -2,19 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-
-type CartItem = {
-  name: string;
-  description: string;
-  price: string;
-  badge: "POPULAR" | "RECOMMENDED";
-  quantity: number;
-  image?: string;
-  imageUrl?: string;
-  img?: string;
-  size?: "Small" | "Medium" | "Large";
-  extraHotChilli?: boolean;
-};
+import type { CartItem, SizeType } from "@/lib/types";
+import { getCart, saveCart as saveCartLib } from "@/lib/cart";
+import { isLoggedIn as checkLoggedIn } from "@/lib/auth";
+import { SIZE_PRICES, EXTRA_HOT_CHILLI_PRICE, EVENTS } from "@/lib/constants";
+import { getPriceNumber } from "@/lib/utils";
 
 export default function CartDrawer() {
   const [isOpen, setIsOpen] = useState(false);
@@ -29,8 +21,7 @@ export default function CartDrawer() {
      LOAD CART
   ========================== */
   const loadCart = () => {
-    const user = localStorage.getItem("loggedInUser");
-    const loggedIn = !!user;
+    const loggedIn = checkLoggedIn();
 
     setIsLoggedIn(loggedIn);
 
@@ -39,17 +30,10 @@ export default function CartDrawer() {
       return;
     }
 
-    try {
-      const savedCart = JSON.parse(
-        localStorage.getItem("zee-grill-cart") || "[]"
-      );
-
-      if (Array.isArray(savedCart)) {
-        setCartItems(savedCart);
-      } else {
-        setCartItems([]);
-      }
-    } catch {
+    const savedCart = getCart();
+    if (Array.isArray(savedCart)) {
+      setCartItems(savedCart);
+    } else {
       setCartItems([]);
     }
   };
@@ -71,20 +55,20 @@ export default function CartDrawer() {
       loadCart();
     };
 
-    window.addEventListener("open-cart", handleOpenCart);
-    window.addEventListener("cart-updated", handleCartUpdate);
-    window.addEventListener("auth-changed", handleAuthChange);
-    window.addEventListener("user-logged-in", handleAuthChange);
-    window.addEventListener("user-logged-out", handleAuthChange);
+    window.addEventListener(EVENTS.OPEN_CART, handleOpenCart);
+    window.addEventListener(EVENTS.CART_UPDATED, handleCartUpdate);
+    window.addEventListener(EVENTS.AUTH_CHANGED, handleAuthChange);
+    window.addEventListener(EVENTS.USER_LOGGED_IN, handleAuthChange);
+    window.addEventListener(EVENTS.USER_LOGGED_OUT, handleAuthChange);
 
     loadCart();
 
     return () => {
-      window.removeEventListener("open-cart", handleOpenCart);
-      window.removeEventListener("cart-updated", handleCartUpdate);
-      window.removeEventListener("auth-changed", handleAuthChange);
-      window.removeEventListener("user-logged-in", handleAuthChange);
-      window.removeEventListener("user-logged-out", handleAuthChange);
+      window.removeEventListener(EVENTS.OPEN_CART, handleOpenCart);
+      window.removeEventListener(EVENTS.CART_UPDATED, handleCartUpdate);
+      window.removeEventListener(EVENTS.AUTH_CHANGED, handleAuthChange);
+      window.removeEventListener(EVENTS.USER_LOGGED_IN, handleAuthChange);
+      window.removeEventListener(EVENTS.USER_LOGGED_OUT, handleAuthChange);
     };
   }, []);
 
@@ -113,9 +97,7 @@ export default function CartDrawer() {
      SAVE CART
   ========================== */
   const saveCart = (updatedCart: CartItem[]) => {
-    const user = localStorage.getItem("loggedInUser");
-
-    if (!user) {
+    if (!checkLoggedIn()) {
       setIsLoggedIn(false);
       setCartItems([]);
       return;
@@ -123,42 +105,21 @@ export default function CartDrawer() {
 
     setIsLoggedIn(true);
     setCartItems(updatedCart);
-
-    localStorage.setItem(
-      "zee-grill-cart",
-      JSON.stringify(updatedCart)
-    );
-
-    window.dispatchEvent(new Event("cart-updated"));
-  };
-
-  /* =========================
-     PRICE
-  ========================== */
-  const getPriceNumber = (price: string) => {
-    return Number(price.replace("£", "").trim()) || 0;
+    saveCartLib(updatedCart);
   };
 
   /* =========================
      SIZE PRICE
   ========================== */
-  const getSizePrice = (
-    size?: "Small" | "Medium" | "Large"
-  ) => {
-    if (size === "Small") return 0;
-    if (size === "Medium") return 1;
-    if (size === "Large") return 2;
-
-    return 0;
+  const getSizePrice = (size?: SizeType) => {
+    return SIZE_PRICES[size ?? "Small"] ?? 0;
   };
 
   /* =========================
      EXTRA HOT CHILLI PRICE
   ========================== */
-  const getExtraHotChilliPrice = (
-    extraHotChilli?: boolean
-  ) => {
-    return extraHotChilli ? 0.5 : 0;
+  const getExtraHotChilliPrice = (extraHotChilli?: boolean) => {
+    return extraHotChilli ? EXTRA_HOT_CHILLI_PRICE : 0;
   };
 
   /* =========================
@@ -167,9 +128,7 @@ export default function CartDrawer() {
   const getItemUnitPrice = (item: CartItem) => {
     const basePrice = getPriceNumber(item.price);
     const sizePrice = getSizePrice(item.size);
-    const chilliPrice = getExtraHotChilliPrice(
-      item.extraHotChilli
-    );
+    const chilliPrice = getExtraHotChilliPrice(item.extraHotChilli);
 
     return basePrice + sizePrice + chilliPrice;
   };

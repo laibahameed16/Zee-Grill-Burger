@@ -5,53 +5,21 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { ChevronLeft } from "lucide-react";
 import Navbar from "@/components/home/Navbar";
-
-type CartItem = {
-  name: string;
-  price: string;
-  quantity: number;
-  image?: string;
-  imageUrl?: string;
-  img?: string;
-  size?: "Small" | "Medium" | "Large";
-  extraHotChilli?: boolean;
-};
-
-type OrderCard = {
-  id: string;
-  date: string;
-  time: string;
-  items: CartItem[];
-  total: number;
-  status: "Preparing" | "Delivered" | "Cancelled" | "Picked up";
-  orderType?: "delivery" | "pickup";
-  cutlery?: string;
-  subtotal?: number;
-  deliveryFee?: number;
-  serviceFee?: number;
-  bagCharges?: number;
-  tip?: number;
-  walletAmount?: number;
-  couponCode?: string;
-  couponDiscount?: number;
-};
+import { getCart } from "@/lib/cart";
+import { getOrders, getLastOrder, getOrderCompletedFlag } from "@/lib/orders";
+import { isLoggedIn } from "@/lib/auth";
+import { showNotification } from "@/lib/notifications";
+import { safeLocalStorage } from "@/lib/storage";
+import { SIZE_PRICES, EXTRA_HOT_CHILLI_PRICE, EVENTS } from "@/lib/constants";
+import { getPriceNumber, getSizePrice, getExtraHotChilliPrice, getItemUnitPrice, getItemTotal, dispatchCustomEvent } from "@/lib/utils";
+import type { CartItem, OrderCard, SizeType } from "@/lib/types";
 
 /* =========================================================
    PRICE HELPERS
 ========================================================= */
-const getBasePrice = (price: string | number) => {
-  const p = Number.parseFloat(String(price).replace(/[^0-9.]/g, ""));
-  return Number.isFinite(p) ? p : 0;
-};
-const getSizePrice = (size?: "Small" | "Medium" | "Large") => {
-  if (size === "Medium") return 1;
-  if (size === "Large") return 2;
-  return 0;
-};
-const getExtraHotChilliPrice = (e?: boolean) => (e ? 0.5 : 0);
-const getUnitPrice = (item: CartItem) =>
-  getBasePrice(item.price) + getSizePrice(item.size) + getExtraHotChilliPrice(item.extraHotChilli);
-const getLineTotal = (item: CartItem) => getUnitPrice(item) * item.quantity;
+const getBasePrice = (price: string | number) => getPriceNumber(price);
+const getUnitPrice = (item: CartItem) => getItemUnitPrice(item);
+const getLineTotal = (item: CartItem) => getItemTotal(item);
 
 
 
@@ -162,29 +130,22 @@ export default function MyOrdersPage() {
 
   useEffect(() => {
     try {
-      const storedOrders = localStorage.getItem("zee-grill-orders");
+      const storedOrders = getOrders();
 
-      if (storedOrders) {
-        const parsed = JSON.parse(storedOrders);
-
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          // Merge parsed orders with fallback orders to show diverse data across all tabs
-          setOrders([...parsed, ...fallbackOrders]);
-          return;
-        }
-      }
-
-      const lastOrder = localStorage.getItem("zee-grill-last-order");
-
-      if (lastOrder) {
-        const parsed = JSON.parse(lastOrder);
-        setOrders([parsed, ...fallbackOrders]);
+      if (Array.isArray(storedOrders) && storedOrders.length > 0) {
+        // Merge parsed orders with fallback orders to show diverse data across all tabs
+        setOrders([...storedOrders, ...fallbackOrders]);
         return;
       }
 
-      const cart = JSON.parse(
-        localStorage.getItem("zee-grill-cart") || "[]"
-      );
+      const lastOrder = getLastOrder();
+
+      if (lastOrder) {
+        setOrders([lastOrder, ...fallbackOrders]);
+        return;
+      }
+
+      const cart = getCart();
 
       if (Array.isArray(cart) && cart.length > 0) {
         const items = cart as CartItem[];
@@ -194,11 +155,7 @@ export default function MyOrdersPage() {
           0
         );
 
-        const savedCompleted = localStorage.getItem(
-          "zee-grill-order-completed"
-        );
-
-        if (savedCompleted === "true") {
+        if (getOrderCompletedFlag()) {
           const liveOrder: OrderCard = {
             id: "PPP-24848",
             date: "Today",

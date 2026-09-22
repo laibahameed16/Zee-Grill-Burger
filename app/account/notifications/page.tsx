@@ -3,25 +3,12 @@
 import Link from "next/link";
 import Navbar from "@/components/home/Navbar";
 import { useEffect, useState } from "react";
-import type { PersistentNotification } from "@/lib/notifications";
-
-const STORAGE_KEY = "zee-grill-notifications";
-
-function loadNotifications(): PersistentNotification[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveNotifications(list: PersistentNotification[]) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-  window.dispatchEvent(new Event("notifications-updated"));
-}
+import {
+  getPersistentNotifications,
+  savePersistentNotifications,
+  type PersistentNotification,
+} from "@/lib/notifications";
+import { EVENTS } from "@/lib/constants";
 
 function iconFor(type: PersistentNotification["type"]) {
   switch (type) {
@@ -84,14 +71,14 @@ function colorFor(type: PersistentNotification["type"]) {
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<PersistentNotification[]>([]);
 
-  const reload = () => setNotifications(loadNotifications());
+  const reload = () => setNotifications(getPersistentNotifications());
 
   useEffect(() => {
     reload();
-    window.addEventListener("notifications-updated", reload);
+    window.addEventListener(EVENTS.NOTIFICATIONS_UPDATED, reload);
     window.addEventListener("storage", reload);
     return () => {
-      window.removeEventListener("notifications-updated", reload);
+      window.removeEventListener(EVENTS.NOTIFICATIONS_UPDATED, reload);
       window.removeEventListener("storage", reload);
     };
   }, []);
@@ -104,12 +91,12 @@ export default function NotificationsPage() {
 
   const handleReadAll = () => {
     const updated = notifications.map((n) => ({ ...n, read: true }));
-    saveNotifications(updated);
+    savePersistentNotifications(updated);
     setNotifications(updated);
   };
 
   const handleClearAll = () => {
-    saveNotifications([]);
+    savePersistentNotifications([]);
     setNotifications([]);
   };
 
@@ -117,7 +104,7 @@ export default function NotificationsPage() {
     const updated = notifications.map((n) =>
       n.id === id ? { ...n, read: true } : n
     );
-    saveNotifications(updated);
+    savePersistentNotifications(updated);
     setNotifications(updated);
   };
 

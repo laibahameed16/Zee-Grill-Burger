@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { showNotification } from "@/lib/notifications";
 import Navbar from "@/components/home/Navbar";
+import { logoutUser } from "@/lib/auth";
 
 export default function DeleteAccountPage() {
   const [confirmText, setConfirmText] = useState("");
@@ -23,10 +24,7 @@ export default function DeleteAccountPage() {
     setDeleting(true);
     await new Promise((r) => setTimeout(r, 800));
 
-    localStorage.removeItem("loggedInUser");
-    localStorage.removeItem("zee-grill-user");
-    window.dispatchEvent(new Event("auth-changed"));
-    window.dispatchEvent(new Event("user-logged-out"));
+    logoutUser();
 
     showNotification("success", "Your account has been deleted.");
     setDeleting(false);

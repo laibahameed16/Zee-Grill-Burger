@@ -3,6 +3,11 @@
 import Navbar from "@/components/home/Navbar";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { getFavourites } from "@/lib/favourites";
+import { addToCart } from "@/lib/cart";
+import { isLoggedIn } from "@/lib/auth";
+import { EVENTS } from "@/lib/constants";
+import { dispatchCustomEvent } from "@/lib/utils";
 
 type MenuItem = {
   name: string;
@@ -12,25 +17,13 @@ type MenuItem = {
   image: string;
 };
 
-type CartItem = MenuItem & {
-  quantity: number;
-};
-
 export default function FavouritesPage() {
   const [favourites, setFavourites] = useState<MenuItem[]>([]);
   const [notification, setNotification] = useState("");
 
   useEffect(() => {
     const loadFavourites = () => {
-      try {
-        const saved = JSON.parse(
-          localStorage.getItem("zee-grill-favourites") || "[]"
-        ) as MenuItem[];
-
-        setFavourites(saved);
-      } catch {
-        setFavourites([]);
-      }
+      setFavourites(getFavourites());
     };
 
     loadFavourites();
@@ -39,10 +32,10 @@ export default function FavouritesPage() {
       loadFavourites();
     };
 
-    window.addEventListener("favorites-updated", handleFavouritesUpdate);
+    window.addEventListener(EVENTS.FAVOURITES_UPDATED, handleFavouritesUpdate);
 
     return () => {
-      window.removeEventListener("favorites-updated", handleFavouritesUpdate);
+      window.removeEventListener(EVENTS.FAVOURITES_UPDATED, handleFavouritesUpdate);
     };
   }, []);
 
@@ -60,54 +53,24 @@ export default function FavouritesPage() {
       }, 2200);
     };
 
-    window.addEventListener("site-notification", handleNotification);
+    window.addEventListener(EVENTS.SITE_NOTIFICATION, handleNotification);
 
     return () => {
-      window.removeEventListener("site-notification", handleNotification);
+      window.removeEventListener(EVENTS.SITE_NOTIFICATION, handleNotification);
     };
   }, []);
 
   const handleAddToCart = (item: MenuItem) => {
-    const user = localStorage.getItem("loggedInUser");
-
-    if (!user) {
-      window.dispatchEvent(new Event("open-login"));
+    if (!isLoggedIn()) {
+      dispatchCustomEvent(EVENTS.OPEN_LOGIN);
       return;
     }
 
-    let existingCart: CartItem[] = [];
+    addToCart(item);
 
-    try {
-      existingCart = JSON.parse(
-        localStorage.getItem("zee-grill-cart") || "[]"
-      ) as CartItem[];
-    } catch {
-      existingCart = [];
-    }
-
-    const existingItemIndex = existingCart.findIndex(
-      (cartItem) => cartItem.name === item.name
-    );
-
-    if (existingItemIndex !== -1) {
-      existingCart[existingItemIndex].quantity += 1;
-    } else {
-      existingCart.push({
-        ...item,
-        quantity: 1,
-      });
-    }
-
-    localStorage.setItem("zee-grill-cart", JSON.stringify(existingCart));
-    window.dispatchEvent(new Event("cart-updated"));
-
-    window.dispatchEvent(
-      new CustomEvent("site-notification", {
-        detail: {
-          message: "Item added to cart",
-        },
-      })
-    );
+    dispatchCustomEvent(EVENTS.SITE_NOTIFICATION, {
+      message: "Item added to cart",
+    });
   };
 
   return (

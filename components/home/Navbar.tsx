@@ -4,6 +4,11 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { getUnreadNotificationCount } from "@/lib/notifications";
+import { getAuthUser, getLoggedInUser, isLoggedIn, logoutUser } from "@/lib/auth";
+import { getCart, getCartCount } from "@/lib/cart";
+import { STORAGE_KEYS, EVENTS } from "@/lib/constants";
+import { safeLocalStorage } from "@/lib/storage";
+import { dispatchCustomEvent } from "@/lib/utils";
 
 type ActiveSection =
   | "home"
@@ -36,7 +41,7 @@ export default function Navbar() {
 
   useEffect(() => {
     const updateUser = () => {
-      const savedUser = localStorage.getItem("loggedInUser");
+      const savedUser = getLoggedInUser();
 
       if (savedUser) {
         setUserName(savedUser);
@@ -44,32 +49,22 @@ export default function Navbar() {
         setUserName("");
       }
 
-      try {
-        const raw = localStorage.getItem("zee-grill-user");
-
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          setProfilePic(parsed.profilePic || "");
-        } else {
-          setProfilePic("");
-        }
-      } catch {
-        setProfilePic("");
-      }
+      const authUser = getAuthUser();
+      setProfilePic(authUser.profilePic || "");
     };
 
     updateUser();
 
-    window.addEventListener("auth-changed", updateUser);
-    window.addEventListener("user-logged-in", updateUser);
-    window.addEventListener("user-logged-out", updateUser);
-    window.addEventListener("profile-updated", updateUser);
+    window.addEventListener(EVENTS.AUTH_CHANGED, updateUser);
+    window.addEventListener(EVENTS.USER_LOGGED_IN, updateUser);
+    window.addEventListener(EVENTS.USER_LOGGED_OUT, updateUser);
+    window.addEventListener(EVENTS.PROFILE_UPDATED, updateUser);
 
     return () => {
-      window.removeEventListener("auth-changed", updateUser);
-      window.removeEventListener("user-logged-in", updateUser);
-      window.removeEventListener("user-logged-out", updateUser);
-      window.removeEventListener("profile-updated", updateUser);
+      window.removeEventListener(EVENTS.AUTH_CHANGED, updateUser);
+      window.removeEventListener(EVENTS.USER_LOGGED_IN, updateUser);
+      window.removeEventListener(EVENTS.USER_LOGGED_OUT, updateUser);
+      window.removeEventListener(EVENTS.PROFILE_UPDATED, updateUser);
     };
   }, []);
 
@@ -79,27 +74,14 @@ export default function Navbar() {
 
   useEffect(() => {
     const updateCartCount = () => {
-      const savedUser = localStorage.getItem("loggedInUser");
+      const savedUser = getLoggedInUser();
 
       if (!savedUser) {
         setCartCount(0);
         return;
       }
 
-      try {
-        const savedCart = JSON.parse(
-          localStorage.getItem("zee-grill-cart") || "[]"
-        ) as Array<{ quantity?: number }>;
-
-        const total = savedCart.reduce(
-          (sum, item) => sum + (Number(item.quantity) || 0),
-          0
-        );
-
-        setCartCount(total);
-      } catch {
-        setCartCount(0);
-      }
+      setCartCount(getCartCount());
     };
 
     const handleNotification = (event: Event) => {
@@ -124,24 +106,24 @@ export default function Navbar() {
     updateCartCount();
     updateUnreadCount();
 
-    window.addEventListener("cart-updated", updateCartCount);
+    window.addEventListener(EVENTS.CART_UPDATED, updateCartCount);
     window.addEventListener("storage", updateCartCount);
-    window.addEventListener("auth-changed", updateCartCount);
-    window.addEventListener("user-logged-in", updateCartCount);
-    window.addEventListener("user-logged-out", updateCartCount);
+    window.addEventListener(EVENTS.AUTH_CHANGED, updateCartCount);
+    window.addEventListener(EVENTS.USER_LOGGED_IN, updateCartCount);
+    window.addEventListener(EVENTS.USER_LOGGED_OUT, updateCartCount);
     window.addEventListener(
-      "site-notification",
+      EVENTS.SITE_NOTIFICATION,
       handleNotification
     );
     window.addEventListener(
-      "notifications-updated",
+      EVENTS.NOTIFICATIONS_UPDATED,
       updateUnreadCount
     );
     window.addEventListener("storage", updateUnreadCount);
 
     return () => {
       window.removeEventListener(
-        "cart-updated",
+        EVENTS.CART_UPDATED,
         updateCartCount
       );
 
@@ -151,27 +133,27 @@ export default function Navbar() {
       );
 
       window.removeEventListener(
-        "auth-changed",
+        EVENTS.AUTH_CHANGED,
         updateCartCount
       );
 
       window.removeEventListener(
-        "user-logged-in",
+        EVENTS.USER_LOGGED_IN,
         updateCartCount
       );
 
       window.removeEventListener(
-        "user-logged-out",
+        EVENTS.USER_LOGGED_OUT,
         updateCartCount
       );
 
       window.removeEventListener(
-        "site-notification",
+        EVENTS.SITE_NOTIFICATION,
         handleNotification
       );
 
       window.removeEventListener(
-        "notifications-updated",
+        EVENTS.NOTIFICATIONS_UPDATED,
         updateUnreadCount
       );
     };
@@ -257,23 +239,19 @@ export default function Navbar() {
   };
 
   const openLogin = () => {
-    window.dispatchEvent(new Event("open-login"));
+    dispatchCustomEvent(EVENTS.OPEN_LOGIN);
     closeMenu();
   };
 
   const openCart = () => {
-    window.dispatchEvent(new Event("open-cart"));
+    dispatchCustomEvent(EVENTS.OPEN_CART);
     setMenuOpen(false);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("loggedInUser");
-    localStorage.removeItem("zee-grill-user");
+    logoutUser();
 
     setUserName("");
-
-    window.dispatchEvent(new Event("auth-changed"));
-    window.dispatchEvent(new Event("user-logged-out"));
 
     closeMenu();
   };
@@ -285,23 +263,19 @@ export default function Navbar() {
   const handleLocationSelect = (location: Location) => {
     setSelectedLocation(location);
 
-    localStorage.setItem("selectedLocation", location);
+    safeLocalStorage.setString("selectedLocation", location);
 
     closeMenu();
 
-    window.dispatchEvent(
-      new CustomEvent("site-notification", {
-        detail: {
-          message: `${location} selected`,
-        },
-      })
-    );
+    dispatchCustomEvent(EVENTS.SITE_NOTIFICATION, {
+      message: `${location} selected`,
+    });
   };
 
   // Load saved location
   useEffect(() => {
     const savedLocation =
-      localStorage.getItem("selectedLocation");
+      safeLocalStorage.getString("selectedLocation", "");
 
     if (
       savedLocation === "Glasgow" ||

@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { showNotification } from "@/lib/notifications";
+import { getRegisteredUsers, saveRegisteredUsers, findRegisteredUser, setLoggedInUser, saveAuthUser } from "@/lib/auth";
+import { safeLocalStorage } from "@/lib/storage";
+import { EVENTS } from "@/lib/constants";
 
 type AuthMode =
   | "login"
@@ -155,10 +158,10 @@ export default function AuthModal() {
       setIsOpen(true);
     };
 
-    window.addEventListener("open-login", handleOpenLogin);
+    window.addEventListener(EVENTS.OPEN_LOGIN, handleOpenLogin);
 
     return () => {
-      window.removeEventListener("open-login", handleOpenLogin);
+      window.removeEventListener(EVENTS.OPEN_LOGIN, handleOpenLogin);
     };
   }, []);
 
@@ -214,13 +217,9 @@ export default function AuthModal() {
 
     if (!profilePic && userData.email) {
       try {
-        const savedUsers = JSON.parse(
-          localStorage.getItem("zee-grill-registered-users") || "[]"
-        );
-
-        const found = savedUsers.find(
-          (u: any) =>
-            u.email?.toLowerCase() === userData.email.toLowerCase()
+        const found = findRegisteredUser(
+          (u) =>
+            (u.email ?? "").toLowerCase() === userData.email.toLowerCase()
         );
 
         if (found && found.profilePic) {
@@ -231,22 +230,16 @@ export default function AuthModal() {
       }
     }
 
-    localStorage.setItem("loggedInUser", displayName);
+    setLoggedInUser(displayName);
 
-    localStorage.setItem(
-      "zee-grill-user",
-      JSON.stringify({
-        name: displayName,
-        firstName: userData.firstName || displayName,
-        lastName: userData.lastName || "",
-        phone: userData.phone || "",
-        email: userData.email,
-        profilePic,
-      })
-    );
-
-    window.dispatchEvent(new Event("auth-changed"));
-    window.dispatchEvent(new Event("user-logged-in"));
+    saveAuthUser({
+      name: displayName,
+      firstName: userData.firstName || displayName,
+      lastName: userData.lastName || "",
+      phone: userData.phone || "",
+      email: userData.email,
+      profilePic,
+    });
 
     showNotification("success", toastMsg);
 
@@ -265,7 +258,7 @@ export default function AuthModal() {
     }
 
     const customAdminPass =
-      localStorage.getItem("zee-grill-admin-password") || "udaisa123";
+      safeLocalStorage.getString("zee-grill-admin-password", "udaisa123");
 
     const isDefaultUser =
       trimmedEmail === "udaisnaeem@gmail.com" &&
@@ -281,13 +274,9 @@ export default function AuthModal() {
     }
 
     try {
-      const savedUsers: StoredUser[] = JSON.parse(
-        localStorage.getItem("zee-grill-registered-users") || "[]"
-      );
-
-      const foundUser = savedUsers.find(
+      const foundUser = findRegisteredUser(
         (u) =>
-          u.email.toLowerCase() === trimmedEmail &&
+          (u.email ?? "").toLowerCase() === trimmedEmail &&
           u.password === password
       );
 
@@ -347,13 +336,11 @@ export default function AuthModal() {
     }
 
     try {
-      const savedUsers: StoredUser[] = JSON.parse(
-        localStorage.getItem("zee-grill-registered-users") || "[]"
-      );
+      const savedUsers = getRegisteredUsers();
 
-      const emailExists = savedUsers.some(
+      const emailExists = findRegisteredUser(
         (u) =>
-          u.email.toLowerCase() === regEmail.trim().toLowerCase()
+          (u.email ?? "").toLowerCase() === regEmail.trim().toLowerCase()
       );
 
       if (emailExists) {
@@ -363,7 +350,7 @@ export default function AuthModal() {
         return;
       }
 
-      const newUser: StoredUser = {
+      const newUser = {
         firstName: regFirstName.trim(),
         lastName: regLastName.trim(),
         phone: regPhone.trim(),
@@ -375,10 +362,7 @@ export default function AuthModal() {
 
       savedUsers.push(newUser);
 
-      localStorage.setItem(
-        "zee-grill-registered-users",
-        JSON.stringify(savedUsers)
-      );
+      saveRegisteredUsers(savedUsers);
 
       performLogin(
         {
@@ -502,13 +486,11 @@ export default function AuthModal() {
       let foundUser: StoredUser | undefined;
 
       try {
-        const savedUsers: StoredUser[] = JSON.parse(
-          localStorage.getItem("zee-grill-registered-users") || "[]"
-        );
+        const savedUsers = getRegisteredUsers();
 
         const userIndex = savedUsers.findIndex(
           (u) =>
-            u.email.toLowerCase() === otpEmail.toLowerCase()
+            (u.email ?? "").toLowerCase() === otpEmail.toLowerCase()
         );
 
         if (userIndex !== -1) {
@@ -519,17 +501,14 @@ export default function AuthModal() {
             `${foundUser.firstName} ${foundUser.lastName}`.trim() ||
             foundUser.firstName;
 
-          localStorage.setItem(
-            "zee-grill-registered-users",
-            JSON.stringify(savedUsers)
-          );
+          saveRegisteredUsers(savedUsers);
         }
       } catch {
         // ignore
       }
 
       if (otpEmail.toLowerCase() === "udaisnaeem@gmail.com") {
-        localStorage.setItem(
+        safeLocalStorage.setString(
           "zee-grill-admin-password",
           newPassword
         );
@@ -544,9 +523,7 @@ export default function AuthModal() {
           prefix.charAt(0).toUpperCase() + prefix.slice(1);
 
         try {
-          const savedUsers: StoredUser[] = JSON.parse(
-            localStorage.getItem("zee-grill-registered-users") || "[]"
-          );
+          const savedUsers = getRegisteredUsers();
 
           savedUsers.push({
             firstName: userDisplayName,
@@ -557,10 +534,7 @@ export default function AuthModal() {
             name: userDisplayName,
           });
 
-          localStorage.setItem(
-            "zee-grill-registered-users",
-            JSON.stringify(savedUsers)
-          );
+          saveRegisteredUsers(savedUsers);
         } catch {
           // ignore
         }
