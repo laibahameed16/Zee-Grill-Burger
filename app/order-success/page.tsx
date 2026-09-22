@@ -7,6 +7,7 @@ import { safeLocalStorage } from "@/lib/storage";
 import { getOrders, getLastOrder } from "@/lib/orders";
 import { getPriceNumber } from "@/lib/utils";
 import { SITE_CONFIG } from "@/lib/siteConfig";
+import { STORAGE_KEYS } from "@/lib/constants";
 
 type OrderInfo = {
   orderType?: "delivery" | "pickup";
@@ -19,7 +20,7 @@ export default function OrderSuccessPage() {
 
   useEffect(() => {
     const savedInfo = safeLocalStorage.get<OrderInfo>(
-      "zee-grill-checkout-info",
+      STORAGE_KEYS.CHECKOUT_INFO,
       {}
     );
 

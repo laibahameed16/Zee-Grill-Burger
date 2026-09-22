@@ -31,6 +31,13 @@ export interface SiteConfig {
     instagram: string;
     facebook: string;
     whatsapp: string;
+    tiktok: string;
+  };
+  socials: {
+    instagram: string;
+    facebook: string;
+    whatsapp: string;
+    tiktok: string;
   };
   googleMapsEmbedUrl: string;
   referral: {
@@ -39,6 +46,13 @@ export interface SiteConfig {
   };
   faqs: readonly FaqItem[];
 }
+
+const SOCIAL_LINKS = {
+  instagram: "https://instagram.com",
+  facebook: "https://facebook.com",
+  whatsapp: "https://wa.me/441747413273",
+  tiktok: "https://tiktok.com",
+};
 
 export const SITE_CONFIG: SiteConfig = {
   name: "Porto Piri Piri",
@@ -68,11 +82,8 @@ export const SITE_CONFIG: SiteConfig = {
     "/images/herosection/carousel1.png",
     "/images/herosection/carousel2.png",
   ] as const,
-  socialLinks: {
-    instagram: "https://instagram.com",
-    facebook: "https://facebook.com",
-    whatsapp: "https://wa.me/441747413273",
-  },
+  socialLinks: SOCIAL_LINKS,
+  socials: SOCIAL_LINKS,
   googleMapsEmbedUrl:
     "https://www.google.com/maps?q=49%20Kilmarnock%20Road%2C%20Shawlands%2C%20Glasgow%20G41%203YN&output=embed",
   referral: {

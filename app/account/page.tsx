@@ -7,6 +7,7 @@ import Navbar from "@/components/home/Navbar";
 import { getAuthUser, getLoggedInUser, logoutUser } from "@/lib/auth";
 import { EVENTS } from "@/lib/constants";
 import { dispatchCustomEvent } from "@/lib/utils";
+import { SITE_CONFIG } from "@/lib/siteConfig";
 
 export default function AccountPage() {
   const [userName, setUserName] = useState("");
@@ -151,7 +152,7 @@ export default function AccountPage() {
 
               <p className="mt-1 text-[11px] text-[#888] sm:text-[13px]">
                 {userName
-                  ? "Welcome back to Porto Piri Piri"
+                  ? `Welcome back to ${SITE_CONFIG.name}`
                   : "Please sign in to manage your account"}
               </p>
             </div>

@@ -6,6 +6,7 @@ import { showNotification } from "@/lib/notifications";
 import { getCart } from "@/lib/cart";
 import { safeLocalStorage } from "@/lib/storage";
 import {
+  STORAGE_KEYS,
   EVENTS,
   DELIVERY_FEE,
   SERVICE_FEE,
@@ -76,7 +77,7 @@ export default function PaymentPage() {
     setCartItems(getCart());
 
     const savedCheckoutInfo = safeLocalStorage.get<Partial<CheckoutInfo>>(
-      "zee-grill-checkout-info",
+      STORAGE_KEYS.CHECKOUT_INFO,
       {}
     );
 
@@ -91,7 +92,7 @@ export default function PaymentPage() {
     }
 
     const savedPayment = safeLocalStorage.getString(
-      "zee-grill-payment-method",
+      STORAGE_KEYS.PAYMENT_METHOD,
       ""
     );
 
@@ -102,7 +103,7 @@ export default function PaymentPage() {
       setPaymentMethod(savedPayment);
     }
 
-    if (safeLocalStorage.getBoolean("zee-grill-save-card", false)) {
+    if (safeLocalStorage.getBoolean(STORAGE_KEYS.SAVE_CARD, false)) {
       setSaveCard(true);
     }
   }, []);
@@ -173,7 +174,7 @@ export default function PaymentPage() {
     setPaymentMethod(method);
 
     safeLocalStorage.setString(
-      "zee-grill-payment-method",
+      STORAGE_KEYS.PAYMENT_METHOD,
       method
     );
   };
@@ -206,7 +207,7 @@ export default function PaymentPage() {
     }
 
     safeLocalStorage.setString(
-      "zee-grill-payment-method",
+      STORAGE_KEYS.PAYMENT_METHOD,
       paymentMethod
     );
 
@@ -215,12 +216,12 @@ export default function PaymentPage() {
       saveCard
     ) {
       safeLocalStorage.setBoolean(
-        "zee-grill-save-card",
+        STORAGE_KEYS.SAVE_CARD,
         true
       );
     } else {
       safeLocalStorage.remove(
-        "zee-grill-save-card"
+        STORAGE_KEYS.SAVE_CARD
       );
     }
 

@@ -40,15 +40,14 @@ export default function MyOrdersPage() {
       const storedOrders = getOrders();
 
       if (Array.isArray(storedOrders) && storedOrders.length > 0) {
-        // Merge parsed orders with fallback orders to show diverse data across all tabs
-        setOrders([...storedOrders, ...fallbackOrders]);
+        setOrders(storedOrders);
         return;
       }
 
       const lastOrder = getLastOrder<OrderCard | null>();
 
       if (lastOrder) {
-        setOrders([lastOrder as OrderCard, ...fallbackOrders]);
+        setOrders([lastOrder as OrderCard]);
         return;
       }
 

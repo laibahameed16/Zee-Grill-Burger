@@ -15,6 +15,7 @@ import {
   DELIVERY_FEE,
   SERVICE_FEE,
   BAG_CHARGE,
+  TIP_OPTIONS,
 } from "@/lib/constants";
 import { validateCoupon } from "@/lib/coupons";
 import { safeLocalStorage } from "@/lib/storage";
@@ -147,41 +148,10 @@ export default function CheckoutPage() {
   useEffect(() => {
     try {
       const storedAddrs = getSavedAddresses();
-
       if (Array.isArray(storedAddrs) && storedAddrs.length > 0) {
         setSavedAddresses(storedAddrs as any[]);
       } else {
-        const single = safeLocalStorage.getString("savedAddress");
-
-        if (single) {
-          const parsed = JSON.parse(single);
-
-          if (
-            parsed &&
-            typeof parsed === "object" &&
-            parsed.address
-          ) {
-            setSavedAddresses([
-              {
-                id: "addr-legacy",
-                contactName:
-                  parsed.contactName || "",
-                contactPhone:
-                  parsed.contactPhone || "",
-                address:
-                  parsed.address || "",
-                type:
-                  parsed.type || "Home",
-                house:
-                  parsed.house || "",
-                floor:
-                  parsed.floor || "",
-                road:
-                  parsed.road || "",
-              },
-            ]);
-          }
-        }
+        setSavedAddresses([]);
       }
     } catch {
       setSavedAddresses([]);
@@ -735,7 +705,7 @@ export default function CheckoutPage() {
     ================================================= */
 
     safeLocalStorage.set(
-      "zee-grill-checkout-info",
+      STORAGE_KEYS.CHECKOUT_INFO,
       {
         firstName,
         lastName,
@@ -2857,7 +2827,7 @@ export default function CheckoutPage() {
                 "
               >
 
-                {[1, 2, 3].map(
+                {TIP_OPTIONS.map(
                   (amount) => (
 
                     <button

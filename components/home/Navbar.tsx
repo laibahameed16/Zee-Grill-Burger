@@ -264,7 +264,7 @@ export default function Navbar() {
   const handleLocationSelect = (location: Location) => {
     setSelectedLocation(location);
 
-    safeLocalStorage.setString("selectedLocation", location);
+    safeLocalStorage.setString(STORAGE_KEYS.SELECTED_LOCATION, location);
 
     closeMenu();
 
@@ -276,12 +276,10 @@ export default function Navbar() {
   // Load saved location
   useEffect(() => {
     const savedLocation =
-      safeLocalStorage.getString("selectedLocation", "");
+      safeLocalStorage.getString(STORAGE_KEYS.SELECTED_LOCATION, "");
 
     if (
-      savedLocation === "Glasgow" ||
-      savedLocation === "City Centre" ||
-      savedLocation === "Scotland"
+      SITE_CONFIG.locations.includes(savedLocation as any)
     ) {
       setSelectedLocation(savedLocation);
     }
@@ -404,7 +402,7 @@ export default function Navbar() {
           >
             <img
               src="/images/navbarimages/logo.png"
-              alt="Porto Piri Piri"
+              alt={SITE_CONFIG.name}
               className="
                 h-full
                 w-auto

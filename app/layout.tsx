@@ -5,6 +5,7 @@ import "./globals.css";
 import ToastContainer from "@/components/common/ToastContainer";
 import Preloader from "@/components/Preloader";
 import CartDrawer from "@/components/cart/CartDrawer";
+import { SITE_CONFIG } from "@/lib/siteConfig";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -13,8 +14,8 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Porto Piri Piri",
-  description: "Porto Piri Piri",
+  title: `${SITE_CONFIG.name} | ${SITE_CONFIG.tagline}`,
+  description: `${SITE_CONFIG.name} - ${SITE_CONFIG.tagline}`,
 };
 
 export default function RootLayout({

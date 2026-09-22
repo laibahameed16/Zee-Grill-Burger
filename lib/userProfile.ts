@@ -1,3 +1,7 @@
+import { STORAGE_KEYS, EVENTS } from "./constants";
+import { safeLocalStorage } from "./storage";
+import { dispatchCustomEvent } from "./utils";
+
 export interface UserProfile {
   firstName: string;
   lastName: string;
@@ -7,29 +11,20 @@ export interface UserProfile {
   name?: string;
 }
 
-const USER_KEY = "zee-grill-user";
-const USERS_KEY = "zee-grill-registered-users";
-const LOGGED_IN_USER_KEY = "loggedInUser";
-
 export function getUserProfile(): UserProfile {
-  try {
-    const raw = localStorage.getItem(USER_KEY);
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      return {
-        firstName: parsed.firstName || "",
-        lastName: parsed.lastName || "",
-        email: parsed.email || "",
-        phone: parsed.phone || "",
-        profilePic: parsed.profilePic || "",
-        name: parsed.name || "",
-      };
-    }
-  } catch {
-    // ignore
+  const profile = safeLocalStorage.get<UserProfile | null>(STORAGE_KEYS.USER, null);
+  if (profile) {
+    return {
+      firstName: profile.firstName || "",
+      lastName: profile.lastName || "",
+      email: profile.email || "",
+      phone: profile.phone || "",
+      profilePic: profile.profilePic || "",
+      name: profile.name || "",
+    };
   }
 
-  const displayName = localStorage.getItem(LOGGED_IN_USER_KEY) || "";
+  const displayName = safeLocalStorage.getString(STORAGE_KEYS.LOGGED_IN_USER) || "";
   return {
     firstName: displayName,
     lastName: "",
@@ -49,13 +44,12 @@ export function saveUserProfile(profile: UserProfile): void {
 
   profile.name = displayName;
 
-  localStorage.setItem(USER_KEY, JSON.stringify(profile));
-  localStorage.setItem(LOGGED_IN_USER_KEY, displayName);
+  safeLocalStorage.set(STORAGE_KEYS.USER, profile);
+  safeLocalStorage.setString(STORAGE_KEYS.LOGGED_IN_USER, displayName);
 
   try {
-    const usersRaw = localStorage.getItem(USERS_KEY);
-    if (usersRaw) {
-      const users = JSON.parse(usersRaw);
+    const users = safeLocalStorage.get<any[]>(STORAGE_KEYS.REGISTERED_USERS, []);
+    if (Array.isArray(users)) {
       const idx = users.findIndex(
         (u: any) =>
           u.email?.toLowerCase() === profile.email?.toLowerCase()
@@ -69,13 +63,13 @@ export function saveUserProfile(profile: UserProfile): void {
           profilePic: profile.profilePic,
           name: displayName,
         };
-        localStorage.setItem(USERS_KEY, JSON.stringify(users));
+        safeLocalStorage.set(STORAGE_KEYS.REGISTERED_USERS, users);
       }
     }
   } catch {
     // ignore
   }
 
-  window.dispatchEvent(new Event("auth-changed"));
-  window.dispatchEvent(new Event("profile-updated"));
+  dispatchCustomEvent(EVENTS.AUTH_CHANGED);
+  dispatchCustomEvent(EVENTS.PROFILE_UPDATED);
 }

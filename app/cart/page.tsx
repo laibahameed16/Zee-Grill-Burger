@@ -10,6 +10,7 @@ import { isLoggedIn as checkLoggedIn } from "@/lib/auth";
 import { getWalletBalance } from "@/lib/wallet";
 import { TIP_OPTIONS as TIP_OPTS, EVENTS } from "@/lib/constants";
 import { getPriceNumber, dispatchCustomEvent } from "@/lib/utils";
+import { SITE_CONFIG } from "@/lib/siteConfig";
 
 type CartItem = LibCartItem;
 
@@ -170,7 +171,7 @@ export default function CartPage() {
           >
             <img
               src="/images/navbarimages/logo.png"
-              alt="Porto Piri Piri"
+              alt={SITE_CONFIG.name}
               className="h-full w-auto object-contain"
             />
           </button>

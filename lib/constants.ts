@@ -16,6 +16,11 @@ export const STORAGE_KEYS = {
   ORDERS: "zee-grill-orders",
   LAST_ORDER: "zee-grill-last-order",
   ORDER_COMPLETED: "zee-grill-order-completed",
+  CHECKOUT_INFO: "zee-grill-checkout-info",
+  PAYMENT_METHOD: "zee-grill-payment-method",
+  SAVE_CARD: "zee-grill-save-card",
+  SELECTED_LOCATION: "selectedLocation",
+  LEGACY_SAVED_ADDRESS: "savedAddress",
 } as const;
 
 export const EVENTS = {

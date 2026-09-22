@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { SITE_CONFIG } from "@/lib/siteConfig";
 
 export default function Preloader() {
   const [loading, setLoading] = useState(true);
@@ -21,7 +22,7 @@ export default function Preloader() {
         {/* LOGO */}
         <img
           src="/images/navbarimages/logo.png"
-          alt="Porto Piri Piri"
+          alt={SITE_CONFIG.name}
           className="w-[80px] object-contain sm:w-[90px]"
         />
 

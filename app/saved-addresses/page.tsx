@@ -4,65 +4,21 @@ import Navbar from "@/components/home/Navbar";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { getLoggedInUser } from "@/lib/auth";
-import { safeLocalStorage } from "@/lib/storage";
-import { STORAGE_KEYS } from "@/lib/constants";
+import {
+  getSavedAddresses,
+  addAddress,
+  deleteAddress,
+  type SavedAddress,
+} from "@/lib/addresses";
 
-export interface SavedAddress {
-  id: string;
-  contactName: string;
-  contactPhone: string;
-  address: string;
-  type: "Home" | "Work" | "Other" | string;
-  house: string;
-  floor: string;
-  road: string;
-  postcode?: string;
-  company?: string;
-  createdAt?: number;
-}
-
-const getInitialSavedAddresses = (): SavedAddress[] => {
-  if (typeof window === "undefined") return [];
-
-  try {
-    const stored = safeLocalStorage.get<SavedAddress[]>(STORAGE_KEYS.SAVED_ADDRESSES, []);
-    if (Array.isArray(stored) && stored.length > 0) {
-      return stored;
-    }
-
-    const legacy = safeLocalStorage.getString("savedAddress");
-    if (legacy) {
-      const parsed = JSON.parse(legacy);
-      if (parsed && typeof parsed === "object" && parsed.address) {
-        const item: SavedAddress = {
-          id: `addr-${Date.now()}`,
-          contactName: parsed.contactName || getLoggedInUser() || "User",
-          contactPhone: parsed.contactPhone || "",
-          address: parsed.address || "",
-          type: parsed.type || "Home",
-          house: parsed.house || "",
-          floor: parsed.floor || "",
-          road: parsed.road || "",
-          createdAt: Date.now(),
-        };
-
-        safeLocalStorage.set(STORAGE_KEYS.SAVED_ADDRESSES, [item]);
-        return [item];
-      }
-    }
-  } catch {
-    return [];
-  }
-
-  return [];
-};
+export type { SavedAddress };
 
 export default function SavedAddressesPage() {
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
   const [contactName, setContactName] = useState("");
 
   useEffect(() => {
-    setSavedAddresses(getInitialSavedAddresses());
+    setSavedAddresses(getSavedAddresses());
     const user = getLoggedInUser();
     if (user) {
       setContactName(user);
@@ -144,13 +100,8 @@ export default function SavedAddressesPage() {
       createdAt: Date.now(),
     };
 
-    const updated = [newAddress, ...savedAddresses];
-    setSavedAddresses(updated);
-
-    safeLocalStorage.set(STORAGE_KEYS.SAVED_ADDRESSES, updated);
-
-    // Keep legacy savedAddress in sync with the latest address
-    safeLocalStorage.set("savedAddress", newAddress);
+    addAddress(newAddress);
+    setSavedAddresses(getSavedAddresses());
 
     // Reset input fields
     setAddress("");
@@ -173,15 +124,8 @@ export default function SavedAddressesPage() {
 
   // Delete saved address
   const handleDeleteAddress = (id: string) => {
-    const updated = savedAddresses.filter((item) => item.id !== id);
+    const updated = deleteAddress(id);
     setSavedAddresses(updated);
-    safeLocalStorage.set(STORAGE_KEYS.SAVED_ADDRESSES, updated);
-
-    if (updated.length > 0) {
-      safeLocalStorage.set("savedAddress", updated[0]);
-    } else {
-      safeLocalStorage.remove("savedAddress");
-    }
   };
 
   return (

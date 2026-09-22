@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { MENU_CATEGORIES } from "@/lib/menu";
 
 import TopBar from "@/components/home/TopBar";
 import Navbar from "@/components/home/Navbar";
@@ -16,7 +17,7 @@ import AuthModal from "@/components/home/AuthModal";
 
 export default function Home() {
   const [selectedCategory, setSelectedCategory] =
-    useState("Porto Kebabs");
+    useState(MENU_CATEGORIES[0] || "Porto Kebabs");
 
   useEffect(() => {
     const handleHashScroll = () => {

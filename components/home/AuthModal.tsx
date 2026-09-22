@@ -257,22 +257,6 @@ export default function AuthModal() {
       return;
     }
 
-    const customAdminPass =
-      safeLocalStorage.getString("zee-grill-admin-password", "udaisa123");
-
-    const isDefaultUser =
-      trimmedEmail === "udaisnaeem@gmail.com" &&
-      password === customAdminPass;
-
-    if (isDefaultUser) {
-      performLogin({
-        name: "udaisa",
-        email: "udaisnaeem@gmail.com",
-      });
-
-      return;
-    }
-
     try {
       const foundUser = findRegisteredUser(
         (u) =>
@@ -505,15 +489,6 @@ export default function AuthModal() {
         }
       } catch {
         // ignore
-      }
-
-      if (otpEmail.toLowerCase() === "udaisnaeem@gmail.com") {
-        safeLocalStorage.setString(
-          "zee-grill-admin-password",
-          newPassword
-        );
-
-        userDisplayName = userDisplayName || "udaisa";
       }
 
       if (!userDisplayName) {
@@ -1307,7 +1282,7 @@ export default function AuthModal() {
           </h2>
 
           <p className="mt-1 text-[8px] leading-[1.5] text-[#596273]">
-            Apna email address darj karein. Hum aapko password reset karne ke liye ek verification code bhejenge.
+            Enter your email address. We will send you a verification code to reset your password.
           </p>
 
           <div className="mt-4 rounded-[9px] bg-[#f4f4f5] px-3 py-2">

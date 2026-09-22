@@ -12,6 +12,7 @@ import { getWalletBalance, deductFromWallet } from "@/lib/wallet";
 import { isLoggedIn, getAuthUser } from "@/lib/auth";
 import { safeLocalStorage } from "@/lib/storage";
 import {
+  STORAGE_KEYS,
   EVENTS,
   DELIVERY_FEE,
   SERVICE_FEE,
@@ -55,7 +56,7 @@ export default function ConfirmationPage() {
     setCartItems(getCart());
 
     const savedInfo = safeLocalStorage.get<CheckoutInfo>(
-      "zee-grill-checkout-info",
+      STORAGE_KEYS.CHECKOUT_INFO,
       {}
     );
 
@@ -64,7 +65,7 @@ export default function ConfirmationPage() {
     }
 
     const savedPayment = safeLocalStorage.getString(
-      "zee-grill-payment-method",
+      STORAGE_KEYS.PAYMENT_METHOD,
       ""
     );
 
@@ -72,7 +73,7 @@ export default function ConfirmationPage() {
       setPaymentMethod(savedPayment);
     }
 
-    if (safeLocalStorage.getBoolean("zee-grill-order-completed", false)) {
+    if (safeLocalStorage.getBoolean(STORAGE_KEYS.ORDER_COMPLETED, false)) {
       setOrderCompleted(true);
     }
   }, []);
@@ -936,7 +937,7 @@ export default function ConfirmationPage() {
                 });
 
                 safeLocalStorage.set(
-                  "zee-grill-last-order",
+                  STORAGE_KEYS.LAST_ORDER,
                   { ...newOrder, address, loyaltyPointsEarned: earnedPoints, loyaltyPointsRemaining: updatedPoints, walletCreditEarned: 0, walletBalanceAfterOrder: newWalletBalance }
                 );
 
@@ -1001,7 +1002,7 @@ export default function ConfirmationPage() {
                 // local storage fallback
               }
 
-              safeLocalStorage.setBoolean("zee-grill-order-completed", true);
+              safeLocalStorage.setBoolean(STORAGE_KEYS.ORDER_COMPLETED, true);
               clearCart();
 
               setOrderCompleted(true);

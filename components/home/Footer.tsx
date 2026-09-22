@@ -50,13 +50,13 @@ export default function Footer() {
             </h3>
 
             <div className="mt-5 flex flex-col gap-4">
-              <p className="text-[12px] text-black transition-colors sm:text-[13px]">
-                {SITE_CONFIG.contact.phone}
-              </p>
+              <a href={`tel:${SITE_CONFIG.contact.phone}`} className="text-[12px] text-black transition-colors hover:text-[#ff542d] sm:text-[13px]">
+                {SITE_CONFIG.contact.displayPhone}
+              </a>
 
-              <p className="text-[12px] text-black transition-colors sm:text-[13px]">
+              <a href={`mailto:${SITE_CONFIG.contact.email}`} className="text-[12px] text-black transition-colors hover:text-[#ff542d] sm:text-[13px]">
                 {SITE_CONFIG.contact.email}
-              </p>
+              </a>
 
               <p className="max-w-[150px] text-[12px] leading-[1.7] text-black transition-colors sm:text-[13px]">
                 {SITE_CONFIG.address.street},
@@ -78,7 +78,9 @@ export default function Footer() {
 
               {/* INSTAGRAM */}
               <a
-                href="#"
+                href={SITE_CONFIG.socials.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label="Instagram"
                 className="flex h-[31px] w-[31px] items-center justify-center rounded-full border border-[#6e6e6e] text-[#6e6e6e] hover:border-[#ff542d] hover:text-[#ff542d] transition-all hover:scale-105"
               >
@@ -98,7 +100,9 @@ export default function Footer() {
 
               {/* FACEBOOK */}
               <a
-                href="#"
+                href={SITE_CONFIG.socials.facebook}
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label="Facebook"
                 className="flex h-[31px] w-[31px] items-center justify-center rounded-full border border-[#6e6e6e] text-[#6e6e6e] hover:border-[#ff542d] hover:text-[#ff542d] transition-all hover:scale-105"
               >
@@ -114,7 +118,9 @@ export default function Footer() {
 
               {/* WHATSAPP */}
               <a
-                href="#"
+                href={SITE_CONFIG.socials.whatsapp}
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label="WhatsApp"
                 className="flex h-[31px] w-[31px] items-center justify-center rounded-full border border-[#6e6e6e] text-[#6e6e6e] hover:border-[#ff542d] hover:text-[#ff542d] transition-all hover:scale-105"
               >
@@ -130,7 +136,9 @@ export default function Footer() {
 
               {/* TIKTOK */}
               <a
-                href="#"
+                href={SITE_CONFIG.socials.tiktok}
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label="TikTok"
                 className="flex h-[31px] w-[31px] items-center justify-center rounded-full border border-[#6e6e6e] text-[#6e6e6e] hover:border-[#ff542d] hover:text-[#ff542d] transition-all hover:scale-105"
               >
@@ -153,7 +161,7 @@ export default function Footer() {
       <div className="border-t border-[#a5a3a3]">
         <div className="mx-auto w-full max-w-[1150px] px-5 py-5 sm:px-8 md:px-10 lg:px-0">
           <p className="text-[11px] text-[#626262] sm:text-[12px]">
-            © Powered by Cravedash. All rights reserved.
+            &copy; {SITE_CONFIG.name}. All rights reserved.
           </p>
         </div>
       </div>
