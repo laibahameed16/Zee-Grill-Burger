@@ -1,0 +1,29 @@
+# Dependencies
+node_modules
+
+# Next.js build output
+.next
+out
+
+# Git
+.git
+.gitignore
+
+# Env files (secrets image mein bake na hon)
+.env
+.env.local
+.env*.local
+
+# Docker files khud
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Logs & cache
+npm-debug.log*
+yarn-error.log
+tsconfig.tsbuildinfo
+
+# Docs & misc
+*.md
+scratch

@@ -1,0 +1,15 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # NEXT_PUBLIC_* env vars must be passed at BUILD time
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
+    container_name: zee-grill-burger
+    ports:
+      - "3000:3000"
+    # Runtime env vars (GMAIL_USER, GMAIL_APP_PASSWORD, SMTP_* etc.) send-otp route ke liye
+    env_file:
+      - .env.local
+    restart: unless-stopped

@@ -2048,4 +2048,3 @@ export default function AuthModal() {
       )}
     </div>
   );
-}
